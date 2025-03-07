@@ -164,28 +164,36 @@ function updateStatusIndicator() {
  * Updates the HTML settings panel with current values
  */
 function updateSettingsPanel() {
-    // Update checkbox states
-    $('#cache_refresher_enabled').prop('checked', settings.enabled);
-    $('#cache_refresher_show_notifications').prop('checked', settings.showNotifications);
-    $('#cache_refresher_debug').prop('checked', settings.debug);
-    
-    // Update number inputs
-    $('#cache_refresher_max_refreshes').val(settings.maxRefreshes);
-    $('#cache_refresher_interval').val(settings.refreshInterval / (60 * 1000));
-    $('#cache_refresher_min_tokens').val(settings.minTokens);
-    
-    // Update status text
-    const statusText = $('#cache_refresher_status_text');
-    if (settings.enabled) {
-        if (refreshInProgress) {
-            statusText.text('Refreshing cache...');
-        } else if (refreshesLeft > 0) {
-            statusText.text(`Active - ${refreshesLeft} refreshes remaining`);
-        } else {
-            statusText.text('Active - waiting for next generation');
+    try {
+        // Update checkbox states
+        $('#cache_refresher_enabled').prop('checked', settings.enabled);
+        $('#cache_refresher_show_notifications').prop('checked', settings.showNotifications);
+        $('#cache_refresher_debug').prop('checked', settings.debug);
+        
+        // Update number inputs
+        $('#cache_refresher_max_refreshes').val(settings.maxRefreshes);
+        $('#cache_refresher_interval').val(settings.refreshInterval / (60 * 1000));
+        $('#cache_refresher_min_tokens').val(settings.minTokens);
+        
+        // Update status text
+        const statusText = $('#cache_refresher_status_text');
+        if (statusText.length) {
+            if (settings.enabled) {
+                if (refreshInProgress) {
+                    statusText.text('Refreshing cache...');
+                } else if (refreshesLeft > 0) {
+                    statusText.text(`Active - ${refreshesLeft} refreshes remaining`);
+                } else {
+                    statusText.text('Active - waiting for next generation');
+                }
+            } else {
+                statusText.text('Inactive');
+            }
         }
-    } else {
-        statusText.text('Inactive');
+        
+        debugLog('Settings panel updated');
+    } catch (error) {
+        console.error('Cache Refresher: Error updating settings panel:', error);
     }
 }
 
@@ -193,66 +201,74 @@ function updateSettingsPanel() {
  * Binds event handlers to the settings panel elements
  */
 function bindSettingsHandlers() {
-    // Enable/disable toggle
-    $('#cache_refresher_enabled').on('change', function() {
-        settings.enabled = $(this).prop('checked');
-        saveSettings();
+    try {
+        debugLog('Binding settings handlers');
         
-        if (settings.enabled) {
-            showNotification(t('Cache refreshing enabled'));
-            if (lastGenerationData) {
+        // Enable/disable toggle
+        $('#cache_refresher_enabled').off('change').on('change', function() {
+            settings.enabled = $(this).prop('checked');
+            saveSettings();
+            
+            if (settings.enabled) {
+                showNotification(t('Cache refreshing enabled'));
+                if (lastGenerationData) {
+                    startRefreshCycle();
+                }
+            } else {
+                showNotification(t('Cache refreshing disabled'));
+                stopRefreshCycle();
+            }
+            
+            updateUI();
+            updateSettingsPanel();
+        });
+        
+        // Max refreshes input
+        $('#cache_refresher_max_refreshes').off('change input').on('change input', function() {
+            settings.maxRefreshes = parseInt($(this).val()) || defaultSettings.maxRefreshes;
+            saveSettings();
+            
+            // Restart refresh cycle if enabled and we have data
+            if (settings.enabled && lastGenerationData) {
+                stopRefreshCycle();
                 startRefreshCycle();
             }
-        } else {
-            showNotification(t('Cache refreshing disabled'));
-            stopRefreshCycle();
-        }
+        });
         
-        updateUI();
-        updateSettingsPanel();
-    });
-    
-    // Max refreshes input
-    $('#cache_refresher_max_refreshes').on('change', function() {
-        settings.maxRefreshes = parseInt($(this).val());
-        saveSettings();
+        // Refresh interval input
+        $('#cache_refresher_interval').off('change input').on('change input', function() {
+            settings.refreshInterval = (parseFloat($(this).val()) || defaultSettings.refreshInterval / (60 * 1000)) * 60 * 1000;
+            saveSettings();
+            
+            // Restart refresh cycle if enabled and we have data
+            if (settings.enabled && lastGenerationData) {
+                stopRefreshCycle();
+                startRefreshCycle();
+            }
+        });
         
-        // Restart refresh cycle if enabled and we have data
-        if (settings.enabled && lastGenerationData) {
-            stopRefreshCycle();
-            startRefreshCycle();
-        }
-    });
-    
-    // Refresh interval input
-    $('#cache_refresher_interval').on('change', function() {
-        settings.refreshInterval = parseFloat($(this).val()) * 60 * 1000;
-        saveSettings();
+        // Min tokens input
+        $('#cache_refresher_min_tokens').off('change input').on('change input', function() {
+            settings.minTokens = parseInt($(this).val()) || defaultSettings.minTokens;
+            saveSettings();
+        });
         
-        // Restart refresh cycle if enabled and we have data
-        if (settings.enabled && lastGenerationData) {
-            stopRefreshCycle();
-            startRefreshCycle();
-        }
-    });
-    
-    // Min tokens input
-    $('#cache_refresher_min_tokens').on('change', function() {
-        settings.minTokens = parseInt($(this).val());
-        saveSettings();
-    });
-    
-    // Show notifications toggle
-    $('#cache_refresher_show_notifications').on('change', function() {
-        settings.showNotifications = $(this).prop('checked');
-        saveSettings();
-    });
-    
-    // Debug mode toggle
-    $('#cache_refresher_debug').on('change', function() {
-        settings.debug = $(this).prop('checked');
-        saveSettings();
-    });
+        // Show notifications toggle
+        $('#cache_refresher_show_notifications').off('change').on('change', function() {
+            settings.showNotifications = $(this).prop('checked');
+            saveSettings();
+        });
+        
+        // Debug mode toggle
+        $('#cache_refresher_debug').off('change').on('change', function() {
+            settings.debug = $(this).prop('checked');
+            saveSettings();
+        });
+        
+        debugLog('Settings handlers bound successfully');
+    } catch (error) {
+        console.error('Cache Refresher: Error binding settings handlers:', error);
+    }
 }
 
 /**
@@ -518,33 +534,65 @@ function loadCSS() {
 async function loadSettingsHTML() {
     try {
         console.log('Cache Refresher: Attempting to load HTML template');
-        const settingsHtml = await $.get(`/${extensionFolderPath}/cache-refresher.html`);
-        console.log('Cache Refresher: HTML template loaded');
         
-        const settingsContainer = document.getElementById('extensions_settings');
-        
-        if (settingsContainer) {
-            // Create a container for our settings
-            const extensionSettings = document.createElement('div');
-            extensionSettings.id = 'cache_refresher_settings_container';
-            extensionSettings.innerHTML = settingsHtml;
-            settingsContainer.appendChild(extensionSettings);
-            
-            // Initialize the settings panel
-            updateSettingsPanel();
-            
-            // Bind event handlers
-            bindSettingsHandlers();
-            
-            debugLog('Settings HTML loaded successfully');
-            console.log('Cache Refresher: Settings panel initialized');
-        } else {
-            console.warn('Cache Refresher: Could not find extensions_settings element');
+        // Try to load the HTML template
+        let settingsHtml;
+        try {
+            settingsHtml = await $.get(`/${extensionFolderPath}/cache-refresher.html`);
+            console.log('Cache Refresher: HTML template loaded successfully');
+        } catch (fetchError) {
+            console.error('Cache Refresher: Failed to load HTML template:', fetchError);
+            throw new Error('Failed to load HTML template');
         }
+        
+        // Find the settings container
+        const settingsContainer = document.getElementById('extensions_settings');
+        if (!settingsContainer) {
+            console.warn('Cache Refresher: Could not find extensions_settings element');
+            throw new Error('Could not find extensions_settings element');
+        }
+        
+        // Create a container for our settings
+        const extensionSettings = document.createElement('div');
+        extensionSettings.id = 'cache_refresher_settings_container';
+        extensionSettings.innerHTML = settingsHtml;
+        settingsContainer.appendChild(extensionSettings);
+        
+        // Initialize the drawer functionality if needed
+        if (typeof initializeDrawer === 'function') {
+            initializeDrawer(extensionSettings.querySelector('.inline-drawer'));
+        } else {
+            // Manual initialization of drawer
+            const toggleElement = extensionSettings.querySelector('.inline-drawer-toggle');
+            const contentElement = extensionSettings.querySelector('.inline-drawer-content');
+            
+            if (toggleElement && contentElement) {
+                toggleElement.addEventListener('click', function() {
+                    contentElement.style.display = contentElement.style.display === 'none' ? 'block' : 'none';
+                    const icon = this.querySelector('.inline-drawer-icon');
+                    if (icon) {
+                        icon.classList.toggle('down');
+                        icon.classList.toggle('up');
+                    }
+                });
+            }
+        }
+        
+        // Initialize the settings panel
+        updateSettingsPanel();
+        
+        // Bind event handlers
+        bindSettingsHandlers();
+        
+        debugLog('Settings HTML loaded and initialized successfully');
+        console.log('Cache Refresher: Settings panel initialized');
+        
+        return true;
     } catch (error) {
         console.error('Cache Refresher: Error loading settings HTML:', error);
         // Try to create a minimal UI if HTML fails to load
         createFallbackUI();
+        return false;
     }
 }
 

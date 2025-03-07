@@ -343,37 +343,91 @@
     async function loadSettingsHTML() {
         try {
             console.log('Cache Refresher: Attempting to load HTML template');
-            
+        
             // Use jQuery if available, otherwise use fetch
             let settingsHtml = '<div>Settings panel (mock)</div>';
             if (window.$ && window.$.get) {
-                settingsHtml = await window.$.get(`/${extensionFolderPath}/cache-refresher.html`);
+                try {
+                    settingsHtml = await window.$.get(`/${extensionFolderPath}/cache-refresher.html`);
+                    console.log('Cache Refresher: HTML template loaded via jQuery');
+                } catch (jqueryError) {
+                    console.warn('Cache Refresher: Could not load HTML template via jQuery:', jqueryError);
+                    throw jqueryError;
+                }
             } else {
                 try {
                     const response = await fetch(`/${extensionFolderPath}/cache-refresher.html`);
                     if (response.ok) {
                         settingsHtml = await response.text();
+                        console.log('Cache Refresher: HTML template loaded via fetch');
+                    } else {
+                        throw new Error(`Failed to load HTML template: ${response.status} ${response.statusText}`);
                     }
                 } catch (fetchError) {
-                    console.warn('Cache Refresher: Could not fetch HTML template', fetchError);
+                    console.warn('Cache Refresher: Could not fetch HTML template:', fetchError);
+                    throw fetchError;
                 }
             }
-            
-            console.log('Cache Refresher: HTML template loaded');
-            
+        
             const settingsContainer = document.getElementById('extensions_settings');
-            
+        
             if (settingsContainer) {
                 // Create a container for our settings
                 const extensionSettings = document.createElement('div');
                 extensionSettings.id = 'cache_refresher_settings_container';
                 extensionSettings.innerHTML = settingsHtml;
                 settingsContainer.appendChild(extensionSettings);
+            
+                // Initialize settings UI
+                if (window.$ && window.$.fn) {
+                    // Update checkbox states
+                    $('#cache_refresher_enabled').prop('checked', settings.enabled);
+                    $('#cache_refresher_show_notifications').prop('checked', settings.showNotifications);
+                    $('#cache_refresher_debug').prop('checked', settings.debug);
                 
+                    // Update number inputs
+                    $('#cache_refresher_max_refreshes').val(settings.maxRefreshes);
+                    $('#cache_refresher_interval').val(settings.refreshInterval / (60 * 1000));
+                    $('#cache_refresher_min_tokens').val(settings.minTokens);
+                
+                    // Bind event handlers
+                    $('#cache_refresher_enabled').on('change', function() {
+                        settings.enabled = $(this).prop('checked');
+                        saveSettings();
+                        updateUI();
+                    });
+                
+                    $('#cache_refresher_show_notifications').on('change', function() {
+                        settings.showNotifications = $(this).prop('checked');
+                        saveSettings();
+                    });
+                
+                    $('#cache_refresher_debug').on('change', function() {
+                        settings.debug = $(this).prop('checked');
+                        saveSettings();
+                    });
+                
+                    $('#cache_refresher_max_refreshes').on('change', function() {
+                        settings.maxRefreshes = parseInt($(this).val()) || defaultSettings.maxRefreshes;
+                        saveSettings();
+                    });
+                
+                    $('#cache_refresher_interval').on('change', function() {
+                        settings.refreshInterval = (parseFloat($(this).val()) || defaultSettings.refreshInterval / (60 * 1000)) * 60 * 1000;
+                        saveSettings();
+                    });
+                
+                    $('#cache_refresher_min_tokens').on('change', function() {
+                        settings.minTokens = parseInt($(this).val()) || defaultSettings.minTokens;
+                        saveSettings();
+                    });
+                }
+            
                 debugLog('Settings HTML loaded successfully');
                 console.log('Cache Refresher: Settings panel initialized');
             } else {
                 console.warn('Cache Refresher: Could not find extensions_settings element');
+                throw new Error('Could not find extensions_settings element');
             }
         } catch (error) {
             console.error('Cache Refresher: Error loading settings HTML:', error);

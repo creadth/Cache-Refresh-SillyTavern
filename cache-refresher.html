@@ -1,54 +1,59 @@
-<div id="cache_refresher_extension_settings" class="cache-refresher-extension-settings">
+<div class="cache_refresher_settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>Cache Refresher</b>
+            <b data-i18n="Cache Refresher">Cache Refresher</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
+
         <div class="inline-drawer-content">
-            <div class="cache-refresher-settings-block">
-                <div class="cache-refresher-setting-item">
-                    <label class="checkbox_label" for="cache_refresher_enabled" title="Enable or disable cache refreshing">
-                        <input type="checkbox" id="cache_refresher_enabled" name="cache_refresher_enabled">
-                        <span>Enable Cache Refresher</span>
-                    </label>
+            <div class="flex-container">
+                <input type="checkbox" id="cache_refresher_enabled">
+                <span data-i18n="Enable Cache Refresher">Enable Cache Refresher</span>
+            </div>
+
+            <hr>
+
+            <div class="flex-container flexFlowColumn" title="Maximum number of cache refreshes to perform">
+                <label for="cache_refresher_max_refreshes" data-i18n="Maximum Refreshes">
+                    Maximum Refreshes
+                </label>
+                <div class="flex-container">
+                    <input id="cache_refresher_max_refreshes" class="text_pole flex1 wide100p" type="number" min="1" max="20" value="3">
                 </div>
-                
-                <div class="cache-refresher-setting-item">
-                    <label for="cache_refresher_max_refreshes" title="Maximum number of cache refreshes to perform">
-                        <span>Maximum Refreshes</span>
-                        <input type="number" id="cache_refresher_max_refreshes" name="cache_refresher_max_refreshes" min="1" max="20" class="text_pole textarea_compact">
-                    </label>
+            </div>
+
+            <div class="flex-container flexFlowColumn" title="Interval between cache refreshes in minutes">
+                <label for="cache_refresher_interval" data-i18n="Refresh Interval (minutes)">
+                    Refresh Interval (minutes)
+                </label>
+                <div class="flex-container">
+                    <input id="cache_refresher_interval" class="text_pole flex1 wide100p" type="number" min="0.5" max="10" step="0.5" value="4.9">
                 </div>
-                
-                <div class="cache-refresher-setting-item">
-                    <label for="cache_refresher_interval" title="Interval between cache refreshes in minutes">
-                        <span>Refresh Interval (minutes)</span>
-                        <input type="number" id="cache_refresher_interval" name="cache_refresher_interval" min="0.5" max="10" step="0.5" class="text_pole textarea_compact">
-                    </label>
+            </div>
+
+            <div class="flex-container flexFlowColumn" title="Minimum tokens to request for cache refresh">
+                <label for="cache_refresher_min_tokens" data-i18n="Minimum Tokens">
+                    Minimum Tokens
+                </label>
+                <div class="flex-container">
+                    <input id="cache_refresher_min_tokens" class="text_pole flex1 wide100p" type="number" min="1" max="10" value="1">
                 </div>
-                
-                <div class="cache-refresher-setting-item">
-                    <label for="cache_refresher_min_tokens" title="Minimum tokens to request for cache refresh">
-                        <span>Minimum Tokens</span>
-                        <input type="number" id="cache_refresher_min_tokens" name="cache_refresher_min_tokens" min="1" max="10" class="text_pole textarea_compact">
-                    </label>
-                </div>
-                
-                <div class="cache-refresher-setting-item">
-                    <label class="checkbox_label" for="cache_refresher_show_notifications" title="Show notifications when cache is refreshed">
-                        <input type="checkbox" id="cache_refresher_show_notifications" name="cache_refresher_show_notifications">
-                        <span>Show Notifications</span>
-                    </label>
-                </div>
-                
-                <div class="cache-refresher-setting-item">
-                    <label class="checkbox_label" for="cache_refresher_debug" title="Enable debug logging">
-                        <input type="checkbox" id="cache_refresher_debug" name="cache_refresher_debug">
-                        <span>Debug Mode</span>
-                    </label>
-                </div>
-                
-                <div class="cache-refresher-status-display">
+            </div>
+
+            <div class="flex-container" title="Show notifications when cache is refreshed">
+                <input type="checkbox" id="cache_refresher_show_notifications" checked>
+                <span data-i18n="Show Notifications">Show Notifications</span>
+            </div>
+
+            <div class="flex-container" title="Enable debug logging">
+                <input type="checkbox" id="cache_refresher_debug">
+                <span data-i18n="Debug Mode">Debug Mode</span>
+            </div>
+
+            <hr>
+
+            <div class="flex-container flexFlowColumn">
+                <div class="flex-container">
                     <span>Status: </span>
                     <span id="cache_refresher_status_text">Inactive</span>
                 </div>
