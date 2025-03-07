@@ -18,11 +18,12 @@ const defaultSettings = {
 
 // Initialize extension settings
 if (!extension_settings[extensionName]) {
-    extension_settings[extensionName] = {};
+    extension_settings[extensionName] = defaultSettings;
 }
 
 // Merge with defaults
-const settings = Object.assign({}, defaultSettings, extension_settings[extensionName]);
+extension_settings[extensionName] = Object.assign({}, defaultSettings, extension_settings[extensionName]);
+const settings = extension_settings[extensionName];
 
 // State variables
 let lastGenerationData = null;
@@ -59,13 +60,6 @@ function showNotification(message, type = 'info') {
     }
 }
 
-/**
- * Updates the extension settings in localStorage
- */
-function saveSettings() {
-    extension_settings[extensionName] = settings;
-    debugLog('Settings saved', settings);
-}
 
 /**
  * Toggles the cache refresher on/off
@@ -85,6 +79,14 @@ function toggleCacheRefresher() {
     }
     
     updateUI();
+}
+
+/**
+ * Updates the extension settings in localStorage
+ */
+function saveSettings() {
+    extension_settings[extensionName] = settings;
+    debugLog('Settings saved', settings);
 }
 
 /**
@@ -479,9 +481,6 @@ function captureGenerationData(data) {
     }
 }
 
-// Listen for completed generations
-eventSource.on(event_types.GENERATION_FINISHED, captureGenerationData);
-
 /**
  * Loads the extension CSS
  */
@@ -525,8 +524,17 @@ async function loadSettingsHTML() {
 
 // Initialize the extension
 jQuery(async ($) => {
-    loadCSS();
-    addExtensionControls();
-    await loadSettingsHTML();
-    debugLog('Cache Refresher extension initialized');
+    try {
+        loadCSS();
+        addExtensionControls();
+        await loadSettingsHTML();
+        
+        // Listen for completed generations
+        eventSource.on(event_types.GENERATION_FINISHED, captureGenerationData);
+        
+        debugLog('Cache Refresher extension initialized');
+        console.log(`[${extensionName}] Extension initialized successfully`);
+    } catch (error) {
+        console.error(`[${extensionName}] Error initializing extension:`, error);
+    }
 });
