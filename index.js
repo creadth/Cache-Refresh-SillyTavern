@@ -1,6 +1,14 @@
-import { eventSource, event_types, main_api, callPopup, getRequestHeaders, substituteParams } from '../../../../script.js';
-import { extension_settings, getContext } from '../../../extensions.js';
+import { saveSettingsDebounced, substituteParamsExtended, updateMessageBlock, chat, this_chid, stopGeneration } from '../../../../script.js';
+import { extension_settings } from '../../../extensions.js';
+import { addEphemeralStoppingString, flushEphemeralStoppingStrings } from '../../../power-user.js';
+import { download, getFileText } from '../../../utils.js';
+import { promptManager, Message, MessageCollection } from '../../../openai.js';
+import { getMessageTimeStamp } from '../../../RossAscends-mods.js';
+
+import { main_api, getRequestHeaders, substituteParams } from '../../../../script.js';
 import { t } from '../../../i18n.js';
+
+const { eventSource, event_types, callPopup, renderExtensionTemplateAsync, saveChat } = SillyTavern.getContext();
 
 // Extension name and path
 const extensionName = 'cache-refresher';
@@ -519,8 +527,9 @@ async function loadSettingsHTML() {
 
 // Initialize the extension
 jQuery(async ($) => {
+    $('#extensions_settings').append(await renderExtensionTemplateAsync(extensionFolderPath, 'cache-refresher'));
     loadCSS();
     addExtensionControls();
-    await loadSettingsHTML();
+    await loadSettingsHTML();   
     debugLog('Cache Refresher extension initialized');
 });
