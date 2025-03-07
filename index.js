@@ -49,7 +49,13 @@ function debugLog(message, data) {
  */
 function showNotification(message, type = 'info') {
     if (settings.showNotifications) {
-        toastr[type](message, '', { timeOut: 3000 });
+        // Check if the method exists on toastr
+        if (typeof toastr[type] === 'function') {
+            toastr[type](message, '', { timeOut: 3000 });
+        } else {
+            // Fallback to info
+            toastr.info(message, '', { timeOut: 3000 });
+        }
     }
 }
 
