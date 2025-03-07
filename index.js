@@ -587,19 +587,19 @@ jQuery(async ($) => {
         console.log('Cache Refresher: Starting initialization');
         
         // Check if eventSource is available
-        if (!eventSource) {
+        if (typeof eventSource === 'undefined') {
             console.error('Cache Refresher: eventSource is not available');
             throw new Error('eventSource is not available');
         }
         
         // Check if event_types is available
-        if (!event_types) {
+        if (typeof event_types === 'undefined') {
             console.error('Cache Refresher: event_types is not available');
             throw new Error('event_types is not available');
         }
         
         // Check if GENERATION_FINISHED event type exists
-        if (!event_types.GENERATION_FINISHED) {
+        if (typeof event_types.GENERATION_FINISHED === 'undefined') {
             console.error('Cache Refresher: GENERATION_FINISHED event type is not available');
             console.log('Available event types:', Object.keys(event_types));
             throw new Error('GENERATION_FINISHED event type is not available');
