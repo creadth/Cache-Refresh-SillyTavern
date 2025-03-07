@@ -2,6 +2,9 @@ import { eventSource, event_types, main_api, callPopup, getRequestHeaders, subst
 import { extension_settings, getContext } from '../../../extensions.js';
 import { t } from '../../../i18n.js';
 
+// Log extension loading attempt
+console.log('Cache Refresher: Loading extension...');
+
 // Extension name and path
 const extensionName = 'cache-refresher';
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
@@ -18,12 +21,14 @@ const defaultSettings = {
 
 // Initialize extension settings
 if (!extension_settings[extensionName]) {
-    extension_settings[extensionName] = defaultSettings;
+    extension_settings[extensionName] = {};
+    console.log('Cache Refresher: Creating new settings object');
 }
 
 // Merge with defaults
 extension_settings[extensionName] = Object.assign({}, defaultSettings, extension_settings[extensionName]);
 const settings = extension_settings[extensionName];
+console.log('Cache Refresher: Settings initialized', settings);
 
 // State variables
 let lastGenerationData = null;
@@ -485,12 +490,17 @@ function captureGenerationData(data) {
  * Loads the extension CSS
  */
 function loadCSS() {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = `/${extensionFolderPath}/styles.css`;
-    document.head.appendChild(link);
-    debugLog('CSS loaded');
+    try {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = `/${extensionFolderPath}/styles.css`;
+        document.head.appendChild(link);
+        console.log('Cache Refresher: CSS loaded');
+        debugLog('CSS loaded');
+    } catch (error) {
+        console.error('Cache Refresher: Error loading CSS:', error);
+    }
 }
 
 /**
@@ -498,12 +508,16 @@ function loadCSS() {
  */
 async function loadSettingsHTML() {
     try {
+        console.log('Cache Refresher: Attempting to load HTML template');
         const settingsHtml = await $.get(`/${extensionFolderPath}/cache-refresher.html`);
+        console.log('Cache Refresher: HTML template loaded');
+        
         const settingsContainer = document.getElementById('extensions_settings');
         
         if (settingsContainer) {
             // Create a container for our settings
             const extensionSettings = document.createElement('div');
+            extensionSettings.id = 'cache_refresher_settings_container';
             extensionSettings.innerHTML = settingsHtml;
             settingsContainer.appendChild(extensionSettings);
             
@@ -514,17 +528,83 @@ async function loadSettingsHTML() {
             bindSettingsHandlers();
             
             debugLog('Settings HTML loaded successfully');
+            console.log('Cache Refresher: Settings panel initialized');
         } else {
-            console.warn('Could not find extensions_settings element');
+            console.warn('Cache Refresher: Could not find extensions_settings element');
         }
     } catch (error) {
-        console.error('Error loading settings HTML:', error);
+        console.error('Cache Refresher: Error loading settings HTML:', error);
+        // Try to create a minimal UI if HTML fails to load
+        createFallbackUI();
+    }
+}
+
+/**
+ * Creates a minimal UI if the HTML template fails to load
+ */
+function createFallbackUI() {
+    try {
+        console.log('Cache Refresher: Creating fallback UI');
+        const settingsContainer = document.getElementById('extensions_settings');
+        
+        if (settingsContainer) {
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.id = 'cache_refresher_fallback';
+            fallbackDiv.innerHTML = `
+                <div class="inline-drawer">
+                    <div class="inline-drawer-toggle inline-drawer-header">
+                        <b>Cache Refresher</b>
+                        <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
+                    </div>
+                    <div class="inline-drawer-content">
+                        <div class="flex-container">
+                            <input id="cache_refresher_enabled_fallback" type="checkbox" ${settings.enabled ? 'checked' : ''}>
+                            <label for="cache_refresher_enabled_fallback">Enable Cache Refresher</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            settingsContainer.appendChild(fallbackDiv);
+            
+            // Add minimal event listener
+            document.getElementById('cache_refresher_enabled_fallback').addEventListener('change', function() {
+                settings.enabled = this.checked;
+                saveSettings();
+                updateUI();
+            });
+            
+            console.log('Cache Refresher: Fallback UI created');
+        }
+    } catch (error) {
+        console.error('Cache Refresher: Error creating fallback UI:', error);
     }
 }
 
 // Initialize the extension
 jQuery(async ($) => {
     try {
+        console.log('Cache Refresher: Starting initialization');
+        
+        // Check if eventSource is available
+        if (!eventSource) {
+            console.error('Cache Refresher: eventSource is not available');
+            throw new Error('eventSource is not available');
+        }
+        
+        // Check if event_types is available
+        if (!event_types) {
+            console.error('Cache Refresher: event_types is not available');
+            throw new Error('event_types is not available');
+        }
+        
+        // Check if GENERATION_FINISHED event type exists
+        if (!event_types.GENERATION_FINISHED) {
+            console.error('Cache Refresher: GENERATION_FINISHED event type is not available');
+            console.log('Available event types:', Object.keys(event_types));
+            throw new Error('GENERATION_FINISHED event type is not available');
+        }
+        
         loadCSS();
         addExtensionControls();
         await loadSettingsHTML();
@@ -536,5 +616,24 @@ jQuery(async ($) => {
         console.log(`[${extensionName}] Extension initialized successfully`);
     } catch (error) {
         console.error(`[${extensionName}] Error initializing extension:`, error);
+        // Try to add a simple button even if initialization fails
+        try {
+            const extensionsMenu = document.getElementById('extensionsMenu');
+            if (extensionsMenu) {
+                const button = document.createElement('div');
+                button.id = 'cache_refresher_button_fallback';
+                button.classList.add('list-group-item', 'flex-container');
+                button.innerHTML = '<i class="fa-solid fa-sync-alt"></i><span>Cache Refresher (Error)</span>';
+                button.title = 'Cache Refresher failed to initialize';
+                button.style.color = 'red';
+                extensionsMenu.appendChild(button);
+                
+                button.addEventListener('click', () => {
+                    alert('Cache Refresher failed to initialize. Check console for errors.');
+                });
+            }
+        } catch (uiError) {
+            console.error('Cache Refresher: Failed to create fallback UI:', uiError);
+        }
     }
 });
