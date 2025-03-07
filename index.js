@@ -1,6 +1,15 @@
-import { eventSource, event_types, main_api, callPopup, getRequestHeaders, substituteParams } from '../../../../script.js';
-import { extension_settings, getContext } from '../../../extensions.js';
-import { t } from '../../../i18n.js';
+// Use global variables instead of imports
+(function() {
+// Access these variables from the global scope
+const eventSource = window.eventSource;
+const event_types = window.event_types;
+const main_api = window.main_api;
+const callPopup = window.callPopup;
+const getRequestHeaders = window.getRequestHeaders;
+const substituteParams = window.substituteParams;
+const extension_settings = window.extension_settings;
+const getContext = window.getContext;
+const t = window.t || ((str) => str); // Fallback if t is not available
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
@@ -637,3 +646,6 @@ jQuery(async ($) => {
         }
     }
 });
+
+// Close the IIFE
+})();

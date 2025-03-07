@@ -20,7 +20,10 @@
                 console.log('Registered event listener for:', event);
                 return this;
             },
-            makeFirst: function() { return this; }
+            makeFirst: function() { return this; },
+            trigger: function(event, data) {
+                console.log('Event triggered:', event, data);
+            }
         };
         
         window.event_types = {
@@ -30,7 +33,16 @@
             CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready'
         };
         
-        window.extension_settings = {};
+        window.extension_settings = {
+            'cache-refresher': {
+                enabled: false,
+                refreshInterval: 300000,
+                maxRefreshes: 3,
+                minTokens: 1,
+                showNotifications: true,
+                debug: true
+            }
+        };
         
         window.toastr = {
             success: function(msg) { console.log('SUCCESS:', msg); },
@@ -47,6 +59,11 @@
             }; 
         };
         
+        window.getRequestHeaders = function() {
+            return { 'Content-Type': 'application/json' };
+        };
+        
+        window.substituteParams = function(str, dict) { return str; };
         window.substituteParamsExtended = function(str, dict) { return str; };
         
         window.SillyTavern = {
@@ -59,13 +76,15 @@
             }
         };
     </script>
-    <script src="index.js"></script>
-    <script src="test-cache-refresher.js"></script>
 </head>
 <body>
     <h1>Cache Refresher Test Page</h1>
     <p>Check the browser console (F12) for test results</p>
     <div id="extensionsMenu"></div>
     <div id="extensions_settings"></div>
+    
+    <!-- Load scripts after the mock objects are defined -->
+    <script src="index.js"></script>
+    <script src="test-cache-refresher.js"></script>
 </body>
 </html>

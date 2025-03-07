@@ -6,7 +6,7 @@ function checkCacheRefresherExtension() {
     console.log('Running extension check...');
     
     // Check if extension_settings exists
-    if (typeof extension_settings === 'undefined') {
+    if (typeof window.extension_settings === 'undefined') {
         console.error('❌ extension_settings is not defined');
         return false;
     } else {
@@ -14,7 +14,7 @@ function checkCacheRefresherExtension() {
     }
     
     // Check if cache-refresher settings exist
-    if (typeof extension_settings['cache-refresher'] === 'undefined') {
+    if (typeof window.extension_settings['cache-refresher'] === 'undefined') {
         console.error('❌ cache-refresher settings not found in extension_settings');
         return false;
     } else {
@@ -61,7 +61,7 @@ function checkImportErrors() {
         { name: 'eventSource', obj: window.eventSource },
         { name: 'event_types', obj: window.event_types },
         { name: 'getContext', obj: window.getContext },
-        { name: 'substituteParamsExtended', obj: window.substituteParamsExtended }
+        { name: 'cacheRefresher', obj: window.cacheRefresher }
     ];
     
     let hasErrors = false;
