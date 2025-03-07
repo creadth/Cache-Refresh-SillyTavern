@@ -1,11 +1,10 @@
 import { eventSource, event_types, main_api, callPopup, getRequestHeaders, substituteParams } from '../../../../script.js';
-import { extension_settings } from 'C:/AIstuffs/SillyTavern Staging/public/scripts/extensions.js';
-import { getContext } from 'C:/AIstuffs/SillyTavern Staging/public/scripts/extensions.js';
+import { extension_settings, getContext } from '../../../extensions.js';
 import { t } from '../../../i18n.js';
 
 // Extension name and path
 const extensionName = 'cache-refresher';
-const extensionFolderPath = 'third-party/Extension-CacheRefresher';
+const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 // Default configuration
 const defaultSettings = {
@@ -484,7 +483,7 @@ function loadCSS() {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = `/scripts/extensions/${extensionFolderPath}/styles.css`;
+    link.href = `/${extensionFolderPath}/styles.css`;
     document.head.appendChild(link);
     debugLog('CSS loaded');
 }
@@ -494,29 +493,24 @@ function loadCSS() {
  */
 async function loadSettingsHTML() {
     try {
-        const response = await fetch(`/scripts/extensions/${extensionFolderPath}/cache-refresher.html`);
-        if (response.ok) {
-            const html = await response.text();
-            const settingsContainer = document.getElementById('extensions_settings');
+        const settingsHtml = await $.get(`/${extensionFolderPath}/cache-refresher.html`);
+        const settingsContainer = document.getElementById('extensions_settings');
+        
+        if (settingsContainer) {
+            // Create a container for our settings
+            const extensionSettings = document.createElement('div');
+            extensionSettings.innerHTML = settingsHtml;
+            settingsContainer.appendChild(extensionSettings);
             
-            if (settingsContainer) {
-                // Create a container for our settings
-                const extensionSettings = document.createElement('div');
-                extensionSettings.innerHTML = html;
-                settingsContainer.appendChild(extensionSettings);
-                
-                // Initialize the settings panel
-                updateSettingsPanel();
-                
-                // Bind event handlers
-                bindSettingsHandlers();
-                
-                debugLog('Settings HTML loaded successfully');
-            } else {
-                console.warn('Could not find extensions_settings element');
-            }
+            // Initialize the settings panel
+            updateSettingsPanel();
+            
+            // Bind event handlers
+            bindSettingsHandlers();
+            
+            debugLog('Settings HTML loaded successfully');
         } else {
-            console.error('Failed to load settings HTML');
+            console.warn('Could not find extensions_settings element');
         }
     } catch (error) {
         console.error('Error loading settings HTML:', error);
@@ -524,9 +518,9 @@ async function loadSettingsHTML() {
 }
 
 // Initialize the extension
-(function init() {
+jQuery(async ($) => {
     loadCSS();
     addExtensionControls();
-    loadSettingsHTML();
+    await loadSettingsHTML();
     debugLog('Cache Refresher extension initialized');
-})();
+});
