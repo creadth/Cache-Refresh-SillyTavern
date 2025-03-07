@@ -528,73 +528,7 @@ function loadCSS() {
     }
 }
 
-/**
- * Loads the extension HTML template
- */
-async function loadSettingsHTML() {
-    try {
-        console.log('Cache Refresher: Attempting to load HTML template');
-        
-        // Try to load the HTML template
-        let settingsHtml;
-        try {
-            settingsHtml = await $.get(`/${extensionFolderPath}/cache-refresher.html`);
-            console.log('Cache Refresher: HTML template loaded successfully');
-        } catch (fetchError) {
-            console.error('Cache Refresher: Failed to load HTML template:', fetchError);
-            throw new Error('Failed to load HTML template');
-        }
-        
-        // Find the settings container
-        const settingsContainer = document.getElementById('extensions_settings');
-        if (!settingsContainer) {
-            console.warn('Cache Refresher: Could not find extensions_settings element');
-            throw new Error('Could not find extensions_settings element');
-        }
-        
-        // Create a container for our settings
-        const extensionSettings = document.createElement('div');
-        extensionSettings.id = 'cache_refresher_settings_container';
-        extensionSettings.innerHTML = settingsHtml;
-        settingsContainer.appendChild(extensionSettings);
-        
-        // Initialize the drawer functionality if needed
-        if (typeof initializeDrawer === 'function') {
-            initializeDrawer(extensionSettings.querySelector('.inline-drawer'));
-        } else {
-            // Manual initialization of drawer
-            const toggleElement = extensionSettings.querySelector('.inline-drawer-toggle');
-            const contentElement = extensionSettings.querySelector('.inline-drawer-content');
-            
-            if (toggleElement && contentElement) {
-                toggleElement.addEventListener('click', function() {
-                    contentElement.style.display = contentElement.style.display === 'none' ? 'block' : 'none';
-                    const icon = this.querySelector('.inline-drawer-icon');
-                    if (icon) {
-                        icon.classList.toggle('down');
-                        icon.classList.toggle('up');
-                    }
-                });
-            }
-        }
-        
-        // Initialize the settings panel
-        updateSettingsPanel();
-        
-        // Bind event handlers
-        bindSettingsHandlers();
-        
-        debugLog('Settings HTML loaded and initialized successfully');
-        console.log('Cache Refresher: Settings panel initialized');
-        
-        return true;
-    } catch (error) {
-        console.error('Cache Refresher: Error loading settings HTML:', error);
-        // Try to create a minimal UI if HTML fails to load
-        createFallbackUI();
-        return false;
-    }
-}
+// This function is no longer needed as we're directly appending the HTML in the initialization
 
 /**
  * Creates a minimal UI if the HTML template fails to load
@@ -662,9 +596,17 @@ jQuery(async ($) => {
             throw new Error('GENERATION_FINISHED event type is not available');
         }
         
+        // Append the settings HTML to the extensions settings panel
+        $('#extensions_settings').append(await $.get(`/${extensionFolderPath}/cache-refresher.html`));
+        
         loadCSS();
         addExtensionControls();
-        await loadSettingsHTML();
+        
+        // Initialize the settings panel
+        updateSettingsPanel();
+        
+        // Bind event handlers
+        bindSettingsHandlers();
         
         // Listen for completed generations
         eventSource.on(event_types.GENERATION_FINISHED, captureGenerationData);
