@@ -1,3 +1,5 @@
+# ATTENTION the extension doesn't work for now. WIP
+
 # SillyTavern Cache Refresher Extension
 
 ## The Problem
