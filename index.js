@@ -77,12 +77,12 @@ function toggleCacheRefresher() {
     saveSettings();
     
     if (settings.enabled) {
-        showNotification(t('Cache refreshing enabled'));
+        showNotification('Cache refreshing enabled');
         if (lastGenerationData) {
             startRefreshCycle();
         }
     } else {
-        showNotification(t('Cache refreshing disabled'));
+        showNotification('Cache refreshing disabled');
         stopRefreshCycle();
     }
     
@@ -103,11 +103,11 @@ function updateUI() {
             icon.className = refreshInProgress ? 
                 'fa-solid fa-sync-alt fa-spin' : 
                 'fa-solid fa-sync-alt';
-            text.textContent = t('Cache Refresher: ON');
+            text.textContent = 'Cache Refresher: ON';
         } else {
             button.classList.remove('active');
             icon.className = 'fa-solid fa-sync-alt';
-            text.textContent = t('Cache Refresher: OFF');
+            text.textContent = 'Cache Refresher: OFF';
         }
     }
     
@@ -251,33 +251,33 @@ async function showSettings() {
     const html = `
         <div id="cache_refresher_settings" style="display: flex; flex-direction: column; gap: 10px;">
             <label for="refresh_interval" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${t('Refresh Interval (minutes)')}</span>
+                <span>Refresh Interval (minutes)</span>
                 <input type="number" id="refresh_interval" min="0.5" max="10" step="0.5" value="${settings.refreshInterval / (60 * 1000)}" style="width: 100px;">
             </label>
             
             <label for="max_refreshes" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${t('Maximum Refreshes')}</span>
+                <span>Maximum Refreshes</span>
                 <input type="number" id="max_refreshes" min="1" max="20" value="${settings.maxRefreshes}" style="width: 100px;">
             </label>
             
             <label for="min_tokens" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${t('Minimum Tokens')}</span>
+                <span>Minimum Tokens</span>
                 <input type="number" id="min_tokens" min="1" max="10" value="${settings.minTokens}" style="width: 100px;">
             </label>
             
             <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${t('Show Notifications')}</span>
+                <span>Show Notifications</span>
                 <input type="checkbox" id="show_notifications" ${settings.showNotifications ? 'checked' : ''}>
             </label>
             
             <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${t('Debug Mode')}</span>
+                <span>Debug Mode</span>
                 <input type="checkbox" id="debug_mode" ${settings.debug ? 'checked' : ''}>
             </label>
         </div>
     `;
     
-    const result = await callPopup(html, 'confirm', t('Cache Refresher Settings'));
+    const result = await callPopup(html, 'confirm', 'Cache Refresher Settings');
     
     if (result) {
         settings.refreshInterval = parseFloat(document.getElementById('refresh_interval').value) * 60 * 1000;
@@ -287,7 +287,7 @@ async function showSettings() {
         settings.debug = document.getElementById('debug_mode').checked;
         
         saveSettings();
-        showNotification(t('Settings updated'), 'success');
+        showNotification('Settings updated', 'success');
         
         // Restart refresh cycle if enabled and we have data
         if (settings.enabled && lastGenerationData) {
@@ -315,7 +315,7 @@ function addExtensionControls() {
     button.id = 'cache_refresher_button';
     button.classList.add('list-group-item', 'flex-container', 'flexGap5', 'interactable');
     button.dataset.extensionName = extensionName;
-    button.title = t('Toggle cache refreshing to avoid cache expiration');
+    button.title = 'Toggle cache refreshing to avoid cache expiration';
     
     const icon = document.createElement('i');
     icon.className = 'fa-solid fa-sync-alt';
@@ -333,13 +333,13 @@ function addExtensionControls() {
     const settingsButton = document.createElement('div');
     settingsButton.id = 'cache_refresher_settings_button';
     settingsButton.classList.add('list-group-item', 'flex-container', 'flexGap5', 'interactable');
-    settingsButton.title = t('Cache Refresher Settings');
+    settingsButton.title = 'Cache Refresher Settings';
     
     const settingsIcon = document.createElement('i');
     settingsIcon.className = 'fa-solid fa-gear';
     
     const settingsText = document.createElement('span');
-    settingsText.textContent = t('Cache Refresher Settings');
+    settingsText.textContent = 'Cache Refresher Settings';
     
     settingsButton.appendChild(settingsIcon);
     settingsButton.appendChild(settingsText);
