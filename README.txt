@@ -1,39 +1,67 @@
 # SillyTavern Cache Refresher Extension
 
-## The Problem
+[![Status](https://img.shields.io/badge/status-beta-yellow.svg)]()
 
-When using AI language models like OpenAI's GPT or similar services, these platforms typically implement a caching mechanism to improve performance and reduce costs. When you send a prompt that has been processed recently, the service can return the cached response instead of processing the entire prompt again.
+This extension for [SillyTavern](https://github.com/SillyTavern/SillyTavern) automatically keeps your language model's cache "warm" by sending periodic, minimal requests.  This was made for Claude models, but it works with other APIs as well.  By preventing cache expiration, you can significantly reduce API costs and latency, especially during longer interactive sessions.
 
-However, these caches have a limited lifetime - typically around 5 minutes. After this period, the cache expires and subsequent requests with the same prompt will be processed as new, incurring full token costs.
+## The Problem: Cache Expiration
 
-This creates a significant issue for users:
-- If you're working with the same context/prompt repeatedly, you want to take advantage of the cache to save costs
-- But if you wait too long between requests (>5 minutes), the cache expires and you pay full price again
-- This is especially problematic during longer sessions where you might pause your work
+AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and others use caching to improve performance and reduce costs.  When you send a prompt that's similar to a recent one, the service can often return a cached response instead of recomputing everything.
 
-## The Solution
+However, these caches have a short lifespan (often just a few minutes). If you pause your interaction with the model for longer than the cache timeout, the cache expires, and the next request incurs the full processing cost and latency.
 
-The Cache Refresher extension solves this problem by automatically sending minimal "ping" requests to keep the cache warm. Here's how it works:
+## The Solution: Cache Refreshing
 
-1. After a successful generation, the extension captures the prompt data
-2. It schedules background refreshes at intervals just under the cache expiration time (default: 4 minutes 55 seconds)
-3. These refreshes request only 1 token, minimizing API costs while keeping the full prompt cached
-4. You can configure how many refreshes to perform and the refresh interval
+This extension solves this problem by:
+
+1.  **Capturing Prompts:** After each successful generation, the extension captures the prompt sent to the AI model.
+2.  **Scheduling Refreshes:** It then schedules periodic "ping" requests to be sent to the API. These requests are designed to be minimal (requesting only a single token) to keep the cache alive without incurring significant costs.
+3.  **Configurable Settings:** You can configure:
+    *   **Refresh Interval:** How often to send the refresh requests (default: 4 minutes 30 seconds, optimized for typical cache lifetimes).
+    *   **Maximum Refreshes:** The maximum number of refresh requests to send before stopping (default: 3).
+    *   **Minimum Tokens:** The number of tokens to request in each refresh (default: 1).
+    *   **Show Notifications:** Whether to display toast notifications for each refresh.
+    *   **Debug Mode:** Whether to log debug messages to the browser's console.
 
 ## Benefits
 
-- Significantly reduces API costs for repeated or similar prompts
-- Works automatically in the background
-- Configurable to match your workflow
-- Visual indicators show when cache refreshing is active
+*   **Reduced API Costs:** Avoid paying full price for repeated or similar prompts.
+*   **Automated:** Works in the background; no manual intervention is needed. 
+*   **OpenRouter/Claude Optimized:** While it works with other APIs, it's particularly beneficial for OpenRouter's Claude models, which have short cache lifetimes.
 
-## How to Use
+## Installation
 
-1. Enable the extension using the "Enable Cache Refreshing" button in the extensions menu
-2. Configure settings (refresh interval and maximum refreshes) by clicking the "Cache Refresher Settings" button
-3. Use SillyTavern normally - the extension will automatically manage cache refreshing in the background
-4. A spinning icon indicates when cache refreshing is active
+1.  **Prerequisites:** You must have SillyTavern installed and running.
+2.  **Install the Extension** In SillyTavern, go to the Extensions menu (the puzzle piece icon) You should see a button labeled "Install extension". Click it and enter https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern
+3.  **Enable the Extension:** Also in the Extensions menu, you should see a new panel with all the options of the extension. 
+
+## Usage
+
+Once enabled, the extension works automatically in the background. You'll see a spinning sync icon on the "Cache Refresher" button when a refresh is in progress.  If you've enabled notifications, you'll also see a toast message each time the cache is refreshed.
 
 ## Technical Details
 
-This extension is inspired by the cache warming technique used in the Aider project, which implements a similar mechanism to keep LLM caches warm during coding sessions.
+*   **Dependencies:** This extension relies on SillyTavern's core functionality, including its event system, API request handling, and settings management. It also uses jQuery (which is included with SillyTavern) and standard browser APIs.
+*   **Event-Driven:** The extension listens for the `GENERATE_AFTER_DATA` event in SillyTavern, which is emitted after a successful generation. This event provides the prompt data.
+*   **API Requests:** The extension uses SillyTavern's built-in `sendGenerationRequest` function to send the refresh requests. This ensures that the correct API endpoint, authentication, and settings are used.
+*   **Settings:** Settings are stored using SillyTavern's `extension_settings` object, making them persistent across sessions.
+*   **UI Integration:** The extension adds a toggle button and a settings panel to SillyTavern's extensions menu.
+
+## Troubleshooting
+
+*   **Extension Not Appearing:** Make sure you've placed the extension files in the correct directory (`SillyTavern/public/scripts/extensions/third-party/SillyTavern-Cache-Refresh-Extension`) and restarted SillyTavern.
+*   **No Notifications:** Check that "Show Notifications" is enabled in the extension's settings.
+*   **Cache Still Expiring:**
+    *   Ensure the extension is enabled.
+    *   Check the refresh interval. It should be *shorter* than the cache lifetime of your chosen API/model.
+    *   Verify that your API key and settings are configured correctly in SillyTavern.
+    *   Some APIs might have very short or unpredictable cache lifetimes.
+*   **Errors in Console:** Enable "Debug Mode" in the extension settings and check the browser's developer console (usually opened with F12) for error messages.
+
+## Contributing
+
+Contributions are welcome! If you find a bug or have a feature request, please open an issue on this GitHub repository. If you'd like to contribute code, please fork the repository and submit a pull request.
+
+## License
+
+This extension is released under the [MIT License](LICENSE).
