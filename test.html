@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cache Refresher Test</title>
+    <script>
+        // Mock the required objects and functions
+        window.jQuery = function(callback) {
+            if (typeof callback === 'function') {
+                document.addEventListener('DOMContentLoaded', callback);
+            }
+            return {
+                get: async function() { return '<div>Mock HTML</div>'; }
+            };
+        };
+        
+        window.$ = window.jQuery;
+        
+        window.eventSource = {
+            on: function(event, callback) {
+                console.log('Registered event listener for:', event);
+                return this;
+            },
+            makeFirst: function() { return this; },
+            trigger: function(event, data) {
+                console.log('Event triggered:', event, data);
+            }
+        };
+        
+        window.event_types = {
+            GENERATION_FINISHED: 'generation_finished',
+            STREAM_TOKEN_RECEIVED: 'stream_token_received',
+            MESSAGE_RECEIVED: 'message_received',
+            CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready'
+        };
+        
+        window.extension_settings = {
+            'cache-refresher': {
+                enabled: false,
+                refreshInterval: 300000,
+                maxRefreshes: 3,
+                minTokens: 1,
+                showNotifications: true,
+                debug: true
+            }
+        };
+        
+        window.toastr = {
+            success: function(msg) { console.log('SUCCESS:', msg); },
+            error: function(msg) { console.error('ERROR:', msg); },
+            info: function(msg) { console.log('INFO:', msg); },
+            warning: function(msg) { console.warn('WARNING:', msg); }
+        };
+        
+        window.getContext = function() { 
+            return { 
+                chat_completion_source: 'mock',
+                model: 'test-model',
+                stop_sequence: null
+            }; 
+        };
+        
+        window.getRequestHeaders = function() {
+            return { 'Content-Type': 'application/json' };
+        };
+        
+        window.substituteParams = function(str, dict) { return str; };
+        window.substituteParamsExtended = function(str, dict) { return str; };
+        
+        window.SillyTavern = {
+            getContext: function() {
+                return {
+                    mainApi: 'openai',
+                    eventSource: window.eventSource,
+                    event_types: window.event_types
+                };
+            }
+        };
+    </script>
+</head>
+<body>
+    <h1>Cache Refresher Test Page</h1>
+    <p>Check the browser console (F12) for test results</p>
+    <div id="extensionsMenu"></div>
+    <div id="extensions_settings"></div>
+    
+    <!-- Load scripts after the mock objects are defined -->
+    <script src="index.js"></script>
+    <script src="test-cache-refresher.js"></script>
+</body>
+</html>

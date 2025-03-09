@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cache Refresher Standalone Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+        #extensionsMenu, #extensions_settings {
+            margin-top: 20px;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            min-height: 50px;
+        }
+        .list-group-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .list-group-item i {
+            margin-right: 10px;
+        }
+        .active {
+            background-color: #e6f7ff;
+        }
+    </style>
+    <script>
+        // Mock the required objects and functions
+        window.jQuery = function(callback) {
+            if (typeof callback === 'function') {
+                document.addEventListener('DOMContentLoaded', callback);
+            }
+            return {
+                get: async function() { return '<div>Mock HTML</div>'; }
+            };
+        };
+        
+        window.$ = window.jQuery;
+        
+        window.eventSource = {
+            on: function(event, callback) {
+                console.log('Registered event listener for:', event);
+                this.callbacks = this.callbacks || {};
+                this.callbacks[event] = callback;
+                return this;
+            },
+            makeFirst: function() { return this; },
+            trigger: function(event, data) {
+                console.log('Event triggered:', event, data);
+                if (this.callbacks && this.callbacks[event]) {
+                    this.callbacks[event](data);
+                }
+            }
+        };
+        
+        window.event_types = {
+            GENERATION_FINISHED: 'generation_finished',
+            STREAM_TOKEN_RECEIVED: 'stream_token_received',
+            MESSAGE_RECEIVED: 'message_received',
+            CHAT_COMPLETION_PROMPT_READY: 'chat_completion_prompt_ready'
+        };
+        
+        window.extension_settings = {
+            'cache-refresher': {
+                enabled: false,
+                refreshInterval: 5000, // 5 seconds for testing
+                maxRefreshes: 3,
+                minTokens: 1,
+                showNotifications: true,
+                debug: true
+            }
+        };
+        
+        window.toastr = {
+            success: function(msg) { 
+                console.log('SUCCESS:', msg);
+                showToast('success', msg);
+            },
+            error: function(msg) { 
+                console.error('ERROR:', msg);
+                showToast('error', msg);
+            },
+            info: function(msg) { 
+                console.log('INFO:', msg);
+                showToast('info', msg);
+            },
+            warning: function(msg) { 
+                console.warn('WARNING:', msg);
+                showToast('warning', msg);
+            }
+        };
+        
+        window.getContext = function() { 
+            return { 
+                chat_completion_source: 'mock',
+                model: 'test-model',
+                stop_sequence: null
+            }; 
+        };
+        
+        window.getRequestHeaders = function() {
+            return { 'Content-Type': 'application/json' };
+        };
+        
+        window.substituteParams = function(str, dict) { return str; };
+        window.substituteParamsExtended = function(str, dict) { return str; };
+        
+        window.SillyTavern = {
+            getContext: function() {
+                return {
+                    mainApi: 'openai',
+                    eventSource: window.eventSource,
+                    event_types: window.event_types
+                };
+            }
+        };
+        
+        // Mock fetch for testing
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            console.log('Fetch called with:', url, options);
+            document.getElementById('status').textContent = 'Fetch request sent to: ' + url;
+            
+            // Simulate a successful response
+            return Promise.resolve({
+                ok: true,
+                json: function() {
+                    return Promise.resolve({ success: true });
+                }
+            });
+        };
+        
+        function showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            toast.style.padding = '10px';
+            toast.style.marginBottom = '10px';
+            toast.style.borderRadius = '4px';
+            
+            switch(type) {
+                case 'success':
+                    toast.style.backgroundColor = '#dff0d8';
+                    toast.style.color = '#3c763d';
+                    break;
+                case 'error':
+                    toast.style.backgroundColor = '#f2dede';
+                    toast.style.color = '#a94442';
+                    break;
+                case 'info':
+                    toast.style.backgroundColor = '#d9edf7';
+                    toast.style.color = '#31708f';
+                    break;
+                case 'warning':
+                    toast.style.backgroundColor = '#fcf8e3';
+                    toast.style.color = '#8a6d3b';
+                    break;
+            }
+            
+            const toastContainer = document.getElementById('toast-container');
+            toastContainer.appendChild(toast);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        function simulateGeneration() {
+            const testData = {
+                chat: [{ role: 'user', content: 'Hello' }],
+                prompt: 'Test prompt'
+            };
+            
+            document.getElementById('status').textContent = 'Simulating generation...';
+            window.eventSource.trigger(window.event_types.GENERATION_FINISHED, testData);
+        }
+        
+        function toggleExtension() {
+            if (window.cacheRefresher) {
+                window.cacheRefresher.toggleCacheRefresher();
+                document.getElementById('status').textContent = 'Extension toggled: ' + 
+                    (window.extension_settings['cache-refresher'].enabled ? 'ON' : 'OFF');
+            } else {
+                document.getElementById('status').textContent = 'Extension not initialized yet';
+            }
+        }
+        
+        function runTests() {
+            document.getElementById('status').textContent = 'Running tests...';
+            
+            // Load the test script
+            const script = document.createElement('script');
+            script.src = 'test-cache-refresher.js';
+            document.head.appendChild(script);
+        }
+    </script>
+</head>
+<body>
+    <h1>Cache Refresher Standalone Test</h1>
+    <p>This page allows you to test the Cache Refresher extension without SillyTavern.</p>
+    
+    <div class="container">
+        <h2>Test Controls</h2>
+        <button onclick="toggleExtension()">Toggle Extension</button>
+        <button onclick="simulateGeneration()">Simulate Generation</button>
+        <button onclick="runTests()">Run Tests</button>
+        
+        <div id="status" class="status">Ready to test</div>
+    </div>
+    
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+    
+    <h2>Extension UI</h2>
+    <div>
+        <h3>Extensions Menu</h3>
+        <div id="extensionsMenu"></div>
+        
+        <h3>Extension Settings</h3>
+        <div id="extensions_settings"></div>
+    </div>
+    
+    <!-- Load the extension script -->
+    <script src="index-browser.js"></script>
+</body>
+</html>

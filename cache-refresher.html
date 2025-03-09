@@ -20,14 +20,19 @@
                 <div class="flex-container">
                     <input id="cache_refresher_max_refreshes" class="text_pole flex1 wide100p" type="number" min="1" max="20" value="3">
                 </div>
-            </div>
-
-            <div class="flex-container flexFlowColumn" title="Interval between cache refreshes in minutes">
-                <label for="cache_refresher_interval" data-i18n="Refresh Interval (minutes)">
-                    Refresh Interval (minutes)
-                </label>
-                <div class="flex-container">
-                    <input id="cache_refresher_interval" class="text_pole flex1 wide100p" type="number" min="0.5" max="10" step="0.5" value="4.91">
+                
+                <div class="cache-refresher-setting-item">
+                    <label for="cache_refresher_interval" title="Interval between cache refreshes in minutes">
+                        <span>Refresh Interval (minutes)</span>
+                        <input type="number" id="cache_refresher_interval" name="cache_refresher_interval" min="0.5" max="10" step="0.5" class="text_pole textarea_compact">
+                    </label>
+                </div>
+                
+                <div class="cache-refresher-setting-item">
+                    <label for="cache_refresher_min_tokens" title="Minimum tokens to request for cache refresh">
+                        <span>Minimum Tokens</span>
+                        <input type="number" id="cache_refresher_min_tokens" name="cache_refresher_min_tokens" min="1" max="10" class="text_pole textarea_compact">
+                    </label>
                 </div>
             </div>
 
