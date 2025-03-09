@@ -16,7 +16,6 @@ const defaultSettings = {
     maxRefreshes: 3,
     minTokens: 1, // Minimum tokens to request for cache refresh
     showNotifications: true,
-    debug: false,
 };
 
 // Initialize extension settings
@@ -42,7 +41,7 @@ let nextRefreshTime = null;
 let statusUpdateInterval = null;
 
 /**
- * Logs a message if debug mode is enabled
+ * Logs a message to console
  * @param {string} message - Message to log
  * @param {any} data - Optional data to log
  */
@@ -151,7 +150,6 @@ async function updateSettingsPanel() {
         // Update checkbox states
         $('#cache_refresher_enabled').prop('checked', settings.enabled);
         $('#cache_refresher_show_notifications').prop('checked', settings.showNotifications);
-        $('#cache_refresher_debug').prop('checked', settings.debug);
 
         // Update number inputs
         $('#cache_refresher_max_refreshes').val(settings.maxRefreshes);
@@ -242,11 +240,6 @@ async function bindSettingsHandlers() {
             await saveSettings();
         });
 
-        // Debug mode toggle
-        $('#cache_refresher_debug').off('change').on('change', async function() {
-            settings.debug = $(this).prop('checked');
-            await saveSettings();
-        });
 
         debugLog('Settings handlers bound successfully');
     } catch (error) {

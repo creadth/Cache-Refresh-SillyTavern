@@ -23,7 +23,6 @@ This extension solves this problem by:
     *   **Maximum Refreshes:** The maximum number of refresh requests to send before stopping (default: 3).
     *   **Minimum Tokens:** The number of tokens to request in each refresh (default: 1).
     *   **Show Notifications:** Whether to display toast notifications for each refresh.
-    *   **Debug Mode:** Whether to log debug messages to the browser's console.
 
 ## Benefits
 
@@ -58,7 +57,7 @@ Once enabled, the extension works automatically in the background. You'll see a 
     *   Check the refresh interval. It should be *shorter* than the cache lifetime of your chosen API/model.
     *   Verify that your API key and settings are configured correctly in SillyTavern.
     *   Some APIs might have very short or unpredictable cache lifetimes.
-*   **Errors in Console:** Enable "Debug Mode" in the extension settings and check the browser's developer console (usually opened with F12) for error messages.
+*   **Errors in Console:** Check the browser's developer console (usually opened with F12) for error messages.
 
 ## Contributing
 
