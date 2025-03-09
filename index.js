@@ -221,6 +221,9 @@ async function bindSettingsHandlers() {
             } else {
                 showNotification('Cache refreshing disabled');
                 stopRefreshCycle(); // Stop any active refresh cycle
+                // Clear any stored generation data to prevent future refreshes
+                lastGenerationData.prompt = null;
+                refreshesLeft = 0;
             }
 
             updateUI();
@@ -411,7 +414,14 @@ async function refreshCache() {
  */
 function captureGenerationData(data) {
     // Don't capture if the extension is disabled
-    if (!settings.enabled) return;
+    if (!settings.enabled) {
+        // Ensure we don't have any stored data if disabled
+        if (lastGenerationData.prompt) {
+            lastGenerationData.prompt = null;
+            debugLog('Extension disabled - cleared stored generation data');
+        }
+        return;
+    }
     
     debugLog('captureGenerationData', data);
     debugLog('Current API:', mainApi);
@@ -497,6 +507,13 @@ jQuery(async ($) => {
                 }
             });
         });
+
+        // Make sure we start with clean state if disabled
+        if (!settings.enabled) {
+            lastGenerationData.prompt = null;
+            refreshesLeft = 0;
+            debugLog('Extension disabled at startup - ensuring clean state');
+        }
 
         debugLog('Cache Refresher extension initialized');
         console.log(`[${extensionName}] Extension initialized successfully`);
