@@ -194,9 +194,7 @@ async function bindSettingsHandlers() {
 
             if (settings.enabled) {
                 showNotification('Cache refreshing enabled');
-                if (lastGenerationData.prompt) {
-                    startRefreshCycle();
-                }
+                // Don't start refresh cycle here, wait for a message
             } else {
                 showNotification('Cache refreshing disabled');
                 stopRefreshCycle();
@@ -211,10 +209,11 @@ async function bindSettingsHandlers() {
             settings.maxRefreshes = parseInt($(this).val()) || defaultSettings.maxRefreshes;
             await saveSettings();
 
-            // Restart refresh cycle if enabled and we have data
-            if (settings.enabled && lastGenerationData.prompt) {
+            // Don't restart refresh cycle here, just update settings
+            if (settings.enabled && refreshTimer) {
+                // If a refresh cycle is already running, stop and reschedule with new settings
                 stopRefreshCycle();
-                startRefreshCycle();
+                scheduleNextRefresh();
             }
         });
 
@@ -223,10 +222,11 @@ async function bindSettingsHandlers() {
             settings.refreshInterval = (parseFloat($(this).val()) || defaultSettings.refreshInterval / (60 * 1000)) * 60 * 1000;
             await saveSettings();
 
-            // Restart refresh cycle if enabled and we have data
-            if (settings.enabled && lastGenerationData.prompt) {
+            // Don't restart refresh cycle here, just update settings
+            if (settings.enabled && refreshTimer) {
+                // If a refresh cycle is already running, stop and reschedule with new settings
                 stopRefreshCycle();
-                startRefreshCycle();
+                scheduleNextRefresh();
             }
         });
 
@@ -263,11 +263,12 @@ async function addExtensionControls() {
 }
 
 /**
- * Starts the refresh cycle
+ * Starts the refresh cycle - this should only be called internally
+ * and not directly from event handlers
  */
 function startRefreshCycle() {
     debugLog('startRefreshCycle:', lastGenerationData);
-    if (!lastGenerationData.prompt) return;
+    if (!lastGenerationData.prompt || !settings.enabled) return;
     debugLog('startRefreshCycle: pass');
 
     if (!isChatCompletion()) {
@@ -425,9 +426,18 @@ jQuery(async ($) => {
             eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, captureGenerationData);
         });
 
-        // Listen for generation starting to start the cycle (Don't know if timer start at start or end of response, so this just to be sure.)
+        // Listen for generation starting to start the cycle
+        // Only start the refresh cycle when a message is received
         eventSource.on(eventTypes.APP_READY, () => {
-            eventSource.on(eventTypes.MESSAGE_RECEIVED, startRefreshCycle);
+            eventSource.on(eventTypes.MESSAGE_RECEIVED, () => {
+                if (settings.enabled && lastGenerationData.prompt) {
+                    debugLog('Message received, starting refresh cycle');
+                    stopRefreshCycle(); // Clear any existing cycle first
+                    refreshesLeft = settings.maxRefreshes;
+                    scheduleNextRefresh();
+                    updateUI();
+                }
+            });
         });
 
         debugLog('Cache Refresher extension initialized');
