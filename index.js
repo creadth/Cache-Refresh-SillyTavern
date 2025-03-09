@@ -1,10 +1,10 @@
 /**
  * Cache Refresher Extension for SillyTavern
- * 
+ *
  * This extension automatically keeps the language model's cache "warm" by sending
  * periodic minimal requests to prevent cache expiration. This helps reduce API costs
  * and latency during longer interactive sessions.
- * 
+ *
  * The extension works by:
  * 1. Capturing prompts after successful generations
  * 2. Scheduling periodic "ping" requests with minimal token requests
@@ -289,7 +289,7 @@ async function addExtensionControls() {
  */
 function startRefreshCycle() {
     debugLog('startRefreshCycle:', lastGenerationData);
-    
+
     // Don't start if we don't have a prompt or if the extension is disabled
     if (!lastGenerationData.prompt || !settings.enabled) return;
     debugLog('startRefreshCycle: pass');
@@ -334,7 +334,7 @@ function stopRefreshCycle() {
     // Reset state variables
     nextRefreshTime = null;
     refreshInProgress = false;
-    
+
     // Update UI to reflect stopped state
     updateUI();
 
@@ -390,7 +390,7 @@ async function refreshCache() {
         // We're just refreshing the cache, not generating visible content
         const data = await sendGenerationRequest('quiet', lastGenerationData);
         debugLog('Cache refresh response:', data);
-        
+
         // Show notification for successful refresh
         showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
 
@@ -409,7 +409,7 @@ async function refreshCache() {
 /**
  * Captures generation data for future cache refreshing
  * This is called when a new message is generated to store the prompt for later refreshes
- * 
+ *
  * @param {Object} data - The generation data from SillyTavern
  */
 function captureGenerationData(data) {
@@ -422,10 +422,10 @@ function captureGenerationData(data) {
         }
         return;
     }
-    
+
     debugLog('captureGenerationData', data);
     debugLog('Current API:', mainApi);
-    
+
     try {
         // Only support chat completion APIs for now
         if (!isChatCompletion()) {
@@ -488,7 +488,7 @@ jQuery(async ($) => {
         bindSettingsHandlers();
 
         // Set up event listeners for SillyTavern events
-        
+
         // Listen for chat completion prompts to capture them for refreshing
         eventSource.on(eventTypes.APP_READY, () => {
             eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, captureGenerationData);
