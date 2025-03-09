@@ -378,6 +378,9 @@ async function refreshCache() {
     refreshInProgress = true;
     updateUI();
 
+    // Save the original maxContext value to restore it later
+    const originalMaxContext = maxContext.value;
+    
     try {
         debugLog('Refreshing cache with data', lastGenerationData);
 
@@ -385,6 +388,10 @@ async function refreshCache() {
         if (!isChatCompletion()) {
             throw new Error(`Unsupported API for cache refresh: ${mainApi} in refreshCache()`);
         }
+
+        // Set maxContext to 1 to minimize token usage during refresh
+        maxContext.value = 1;
+        debugLog('Set maxContext to 1 for minimal token usage');
 
         // Send a "quiet" request - this tells SillyTavern not to display the response
         // We're just refreshing the cache, not generating visible content
@@ -398,6 +405,10 @@ async function refreshCache() {
         debugLog('Cache refresh failed', error);
         showNotification(`Cache refresh failed: ${error.message}`, 'error');
     } finally {
+        // Always restore the original maxContext value
+        maxContext.value = originalMaxContext;
+        debugLog('Restored original maxContext value:', originalMaxContext);
+        
         // Always clean up, even if there was an error
         refreshInProgress = false;
         refreshesLeft--;
