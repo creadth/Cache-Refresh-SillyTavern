@@ -38,6 +38,8 @@ let refreshTimer = null;
 let refreshesLeft = 0;
 let refreshInProgress = false;
 let statusIndicator = null;
+let nextRefreshTime = null;
+let statusUpdateInterval = null;
 
 /**
  * Logs a message if debug mode is enabled
@@ -117,10 +119,39 @@ function updateStatusIndicator() {
     }
 
     if (settings.enabled && refreshesLeft > 0) {
-        statusIndicator.textContent = `Cache refreshes: ${refreshesLeft} remaining`;
+        // Calculate time until next refresh
+        let timeRemaining = 0;
+        if (refreshTimer) {
+            const timerId = refreshTimer[Symbol.toPrimitive]();
+            const handlers = getTimerHandlers();
+            if (handlers[timerId]) {
+                timeRemaining = Math.max(0, handlers[timerId].triggerTime - Date.now());
+            }
+        }
+        
+        // Format time as MM:SS
+        const minutes = Math.floor(timeRemaining / 60000);
+        const seconds = Math.floor((timeRemaining % 60000) / 1000);
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        statusIndicator.textContent = `Cache refreshes: ${refreshesLeft} remaining (${timeString})`;
         statusIndicator.style.display = 'block';
     } else {
         statusIndicator.style.display = 'none';
+    }
+}
+
+/**
+ * Gets the internal timer handlers to access timer information
+ * This is a workaround to access setTimeout's internal state
+ */
+function getTimerHandlers() {
+    // This is a workaround to get access to Node.js timer internals in the browser
+    // It won't work in all environments, so we'll provide a fallback
+    try {
+        return require('timers').getTimerHandlers();
+    } catch (e) {
+        return {};
     }
 }
 
@@ -276,7 +307,14 @@ function stopRefreshCycle() {
         clearTimeout(refreshTimer);
         refreshTimer = null;
     }
+    
+    // Clear the status update interval
+    if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
+    }
 
+    nextRefreshTime = null;
     refreshInProgress = false;
     updateUI();
 
@@ -292,11 +330,17 @@ function scheduleNextRefresh() {
         return;
     }
 
+    // Calculate and store the next refresh time
+    nextRefreshTime = Date.now() + settings.refreshInterval;
+    
     refreshTimer = setTimeout(() => {
         refreshCache();
     }, settings.refreshInterval);
 
     debugLog(`Next refresh scheduled in ${settings.refreshInterval / 1000} seconds`);
+    
+    // Update the status indicator immediately
+    updateStatusIndicator();
 }
 
 /**
