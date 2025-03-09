@@ -383,9 +383,7 @@ jQuery(async ($) => {
         debugLog('Cache Refresher: Starting initialization');
 
         // Append the settings HTML to the extensions settings panel
-        const response = await fetch(`/${extensionFolderPath}/cache-refresher.html`);
-        const html = await response.text();
-        $('#extensions_settings').append(html);
+        $('#extensions_settings').append(await renderExtensionTemplateAsync(path, 'cache-refresher'));
 
         loadCSS();
         addExtensionControls();
