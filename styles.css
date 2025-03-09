@@ -12,20 +12,3 @@
     z-index: 1000;
     display: none; /* Initially hidden */
 }
-
-.cache-refresher-setting-item {
-    margin: 8px 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.cache-refresher-setting-item label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.cache-refresher-setting-item input {
-    width: 80px;
-    margin-left: 10px;
-}
