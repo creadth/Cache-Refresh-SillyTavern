@@ -12,7 +12,7 @@
  */
 
 import { extension_settings } from '../../../extensions.js';
-const { eventSource, eventTypes, renderExtensionTemplateAsync, sendGenerationRequest, mainApi } = SillyTavern.getContext();
+const { eventSource, eventTypes, renderExtensionTemplateAsync, sendGenerationRequest, mainApi, maxContext } = SillyTavern.getContext();
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
