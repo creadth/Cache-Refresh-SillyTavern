@@ -119,25 +119,35 @@ function updateStatusIndicator() {
     }
 
     if (settings.enabled && refreshesLeft > 0) {
-        // Calculate time until next refresh
-        let timeRemaining = 0;
-        if (refreshTimer) {
-            const timerId = refreshTimer[Symbol.toPrimitive]();
-            const handlers = getTimerHandlers();
-            if (handlers[timerId]) {
-                timeRemaining = Math.max(0, handlers[timerId].triggerTime - Date.now());
-            }
-        }
+        let timeString = "calculating...";
         
-        // Format time as MM:SS
-        const minutes = Math.floor(timeRemaining / 60000);
-        const seconds = Math.floor((timeRemaining % 60000) / 1000);
-        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        if (nextRefreshTime) {
+            // Calculate time until next refresh
+            const timeRemaining = Math.max(0, nextRefreshTime - Date.now());
+            
+            // Format time as MM:SS
+            const minutes = Math.floor(timeRemaining / 60000);
+            const seconds = Math.floor((timeRemaining % 60000) / 1000);
+            timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
         
         statusIndicator.textContent = `Cache refreshes: ${refreshesLeft} remaining (${timeString})`;
         statusIndicator.style.display = 'block';
+        
+        // Update the timer display every second
+        if (!statusUpdateInterval) {
+            statusUpdateInterval = setInterval(() => {
+                updateStatusIndicator();
+            }, 1000);
+        }
     } else {
         statusIndicator.style.display = 'none';
+        
+        // Clear the update interval when not needed
+        if (statusUpdateInterval) {
+            clearInterval(statusUpdateInterval);
+            statusUpdateInterval = null;
+        }
     }
 }
 
