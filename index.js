@@ -12,7 +12,7 @@
  */
 
 import { extension_settings } from '../../../extensions.js';
-const { chatCompletionSettings, eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest, CHAT_CHANGED } = SillyTavern.getContext();
+const { chatCompletionSettings, eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest } = SillyTavern.getContext();
 
 // Stolen from script.js and modify to work.
 class TempResponseLength {
@@ -610,6 +610,16 @@ jQuery(async ($) => {
                     scheduleNextRefresh();
                     updateUI();
                 }
+            });
+            
+            // Listen for chat changes to stop the refresh cycle
+            // When user switches to a different chat, we don't need to refresh the previous chat anymore
+            eventSource.on(eventTypes.CHAT_CHANGED, () => {
+                debugLog('Chat changed, stopping refresh cycle');
+                stopRefreshCycle();
+                lastGenerationData.prompt = null; // Clear the stored prompt
+                refreshesLeft = 0;
+                updateUI();
             });
         });
 
