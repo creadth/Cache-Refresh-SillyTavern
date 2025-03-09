@@ -12,9 +12,3 @@
     z-index: 1000;
     display: none; /* Initially hidden */
 }
-
-/* Add a style for the active state of the button */
-#cache_refresher_button.active {
-    background-color: #4CAF50; /* Example: Green background when active */
-    color: white;
-}

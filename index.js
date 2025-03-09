@@ -67,23 +67,6 @@ function isChatCompletion() {
 }
 
 
-/**
- * Toggles the cache refresher on/off
- */
-async function toggleCacheRefresher() {
-    settings.enabled = !settings.enabled;
-    await saveSettings();
-
-    if (settings.enabled) {
-        if (lastGenerationData.prompt) {
-            startRefreshCycle();
-        }
-    } else {
-        stopRefreshCycle();
-    }
-
-    updateUI();
-}
 
 /**
  * Updates the extension settings in localStorage
@@ -102,26 +85,9 @@ async function saveSettings() {
  * Updates the UI elements to reflect current state
  */
 function updateUI() {
-    const button = document.getElementById('cache_refresher_button');
-    const icon = button?.querySelector('i');
-    const text = button?.querySelector('span');
-
-    if (button) {
-        if (settings.enabled) {
-            button.classList.add('active');
-            icon.className = refreshInProgress ?
-                'fa-solid fa-sync-alt fa-spin' :
-                'fa-solid fa-sync-alt';
-            text.textContent = 'Cache Refresher: ON';
-        } else {
-            button.classList.remove('active');
-            icon.className = 'fa-solid fa-sync-alt';
-            text.textContent = 'Cache Refresher: OFF';
-        }
-    }
-
-    // Update status indicator
+    // Just update the status indicator and settings panel
     updateStatusIndicator();
+    updateSettingsPanel();
 }
 
 /**
@@ -267,50 +233,7 @@ async function bindSettingsHandlers() {
  * Adds the extension buttons to the UI
  */
 async function addExtensionControls() {
-    // Create main button
-    const extensionsMenu = document.getElementById('extensionsMenu');
-    if (!extensionsMenu) {
-        console.error('Could not find extensions menu');
-        return;
-    }
-
-    const button = document.createElement('div');
-    button.id = 'cache_refresher_button';
-    button.classList.add('list-group-item', 'flex-container', 'flexGap5', 'interactable');
-    button.dataset.extensionName = extensionName;
-    button.title = 'Toggle cache refreshing to avoid cache expiration';
-
-    const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-sync-alt';
-
-    const text = document.createElement('span');
-    text.textContent = 'Cache Refresher: OFF';
-
-    button.appendChild(icon);
-    button.appendChild(text);
-    button.addEventListener('click', toggleCacheRefresher);
-
-    extensionsMenu.appendChild(button);
-
-    // Create settings button
-    const settingsButton = document.createElement('div');
-    settingsButton.id = 'cache_refresher_settings_button';
-    settingsButton.classList.add('list-group-item', 'flex-container', 'flexGap5', 'interactable');
-    settingsButton.title = 'Cache Refresher Settings';
-
-    const settingsIcon = document.createElement('i');
-    settingsIcon.className = 'fa-solid fa-gear';
-
-    const settingsText = document.createElement('span');
-    settingsText.textContent = 'Cache Refresher Settings';
-
-    settingsButton.appendChild(settingsIcon);
-    settingsButton.appendChild(settingsText);
-    settingsButton.addEventListener('click', showSettings);
-
-    extensionsMenu.appendChild(settingsButton);
-
-    // Initial UI update
+    // No need to add buttons - the extension will be controlled through the settings panel
     updateUI();
 }
 
@@ -454,7 +377,9 @@ jQuery(async ($) => {
         debugLog('Cache Refresher: Starting initialization');
 
         // Append the settings HTML to the extensions settings panel
-        $('#extensions_settings').append(await renderExtensionTemplateAsync(path, 'cache-refresher'));
+        const response = await fetch(`/${extensionFolderPath}/cache-refresher.html`);
+        const html = await response.text();
+        $('#extensions_settings').append(html);
 
         loadCSS();
         addExtensionControls();
