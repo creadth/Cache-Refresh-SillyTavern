@@ -95,19 +95,7 @@ function updateUI() {
  */
 function updateStatusIndicator() {
     if (!statusIndicator) {
-        statusIndicator = document.createElement('div');
-        statusIndicator.id = 'cache_refresher_status';
-        statusIndicator.style.position = 'fixed';
-        statusIndicator.style.bottom = '10px';
-        statusIndicator.style.right = '10px';
-        statusIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        statusIndicator.style.color = 'white';
-        statusIndicator.style.padding = '5px 10px';
-        statusIndicator.style.borderRadius = '5px';
-        statusIndicator.style.fontSize = '12px';
-        statusIndicator.style.zIndex = '1000';
-        statusIndicator.style.display = 'none';
-        document.body.appendChild(statusIndicator);
+        statusIndicator = document.getElementById('cache_refresher_status');
     }
 
     if (settings.enabled && refreshesLeft > 0) {
