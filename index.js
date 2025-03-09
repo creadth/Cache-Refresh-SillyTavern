@@ -1,5 +1,5 @@
 import { extension_settings } from '../../../extensions.js';
-const { eventSource, eventTypes, renderExtensionTemplateAsync, sendGenerationRequest, main_api } = SillyTavern.getContext();
+const { eventSource, eventTypes, renderExtensionTemplateAsync, sendGenerationRequest, mainApi } = SillyTavern.getContext();
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
@@ -61,7 +61,7 @@ function showNotification(message, type = 'info') {
  * Check if the prompt is a chat completion
  */
 function isChatCompletion() {
-    return main_api === 'openai';
+    return mainApi === 'openai';
 }
 
 
@@ -319,10 +319,6 @@ function startRefreshCycle() {
     debugLog('startRefreshCycle:', lastGenerationData);
     if (!lastGenerationData) return;
     debugLog('startRefreshCycle: pass');
-    if (lastGenerationData.dryRun) {
-        debugLog('startRefreshCycle: Skipping dry run prompt');
-        return;
-    }
 
     if (!isChatCompletion()) {
         debugLog('startRefreshCycle: Not a chat completion prompt');
@@ -384,8 +380,8 @@ async function refreshCache() {
     try {
         debugLog('Refreshing cache with data', lastGenerationData);
 
-        if (lastGenerationData.api !== 'openai') {
-            throw new Error(`Unsupported API for cache refresh: ${lastGenerationData.api} in refreshCache()`);
+        if (!isChatCompletion()) {
+            throw new Error(`Unsupported API for cache refresh: ${mainApi} in refreshCache()`);
         }
 
         // Send the new message
@@ -415,13 +411,9 @@ async function refreshCache() {
  */
 function captureGenerationData(data) {
     if (!settings.enabled) return;
-    debugLog('captureGenerationData', lastGenerationData);
+    debugLog('captureGenerationData', data);
+    debugLog('captureGenerationData', mainApi);
     try {
-        if (data.dryRun) {
-            debugLog('Prompt Inspector: Skipping dry run prompt');
-            return;
-        }
-
         if (!isChatCompletion()) {
             debugLog('Prompt Inspector: Not a chat completion prompt');
             return;
@@ -453,29 +445,11 @@ function loadCSS() {
     }
 }
 
+
 // Initialize the extension
 jQuery(async ($) => {
     try {
         debugLog('Cache Refresher: Starting initialization');
-
-        // Check if eventSource is available
-        if (typeof eventSource === 'undefined') {
-            console.error('Cache Refresher: eventSource is not available');
-            throw new Error('eventSource is not available');
-        }
-
-        // Check if eventTypes is available
-        if (typeof eventTypes === 'undefined') {
-            console.error('Cache Refresher: eventTypes is not available');
-            throw new Error('eventTypes is not available');
-        }
-
-        // Check if GENERATION_FINISHED event type exists
-        if (typeof eventTypes.GENERATION_ENDED === 'undefined') {
-            console.error('Cache Refresher: GENERATE_AFTER_DATA event type is not available');
-            console.log('Available event types:', Object.keys(eventTypes));
-            throw new Error('GENERATE_AFTER_DATA event type is not available');
-        }
 
         // Append the settings HTML to the extensions settings panel
         $('#extensions_settings').append(await renderExtensionTemplateAsync(path, 'cache-refresher'));
@@ -496,7 +470,7 @@ jQuery(async ($) => {
 
         // Listen for generation starting to start the cycle (Don't know if timer start at start or end of response, so this just to be sure.)
         eventSource.on(eventTypes.APP_READY, () => {
-            eventSource.on(eventTypes.GENERATE_AFTER_DATA, startRefreshCycle);
+            eventSource.on(eventTypes.MESSAGE_RECEIVED, startRefreshCycle);
         });
 
         debugLog('Cache Refresher extension initialized');
