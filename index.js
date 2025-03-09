@@ -69,14 +69,6 @@ function isChatCompletion() {
 }
 
 /**
- * Shows the settings panel
- */
-function showSettings() {
-    $('#cache_refresher_settings').parent().parent().trigger('click');
-}
-
-
-/**
  * Updates the extension settings in localStorage
  */
 async function saveSettings() {
@@ -119,21 +111,21 @@ function updateStatusIndicator() {
     }
 
     if (settings.enabled && refreshesLeft > 0) {
-        let timeString = "calculating...";
-        
+        let timeString = 'calculating...';
+
         if (nextRefreshTime) {
             // Calculate time until next refresh
             const timeRemaining = Math.max(0, nextRefreshTime - Date.now());
-            
+
             // Format time as MM:SS
             const minutes = Math.floor(timeRemaining / 60000);
             const seconds = Math.floor((timeRemaining % 60000) / 1000);
             timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
-        
+
         statusIndicator.textContent = `Cache refreshes: ${refreshesLeft} remaining (${timeString})`;
         statusIndicator.style.display = 'block';
-        
+
         // Update the timer display every second
         if (!statusUpdateInterval) {
             statusUpdateInterval = setInterval(() => {
@@ -142,26 +134,12 @@ function updateStatusIndicator() {
         }
     } else {
         statusIndicator.style.display = 'none';
-        
+
         // Clear the update interval when not needed
         if (statusUpdateInterval) {
             clearInterval(statusUpdateInterval);
             statusUpdateInterval = null;
         }
-    }
-}
-
-/**
- * Gets the internal timer handlers to access timer information
- * This is a workaround to access setTimeout's internal state
- */
-function getTimerHandlers() {
-    // This is a workaround to get access to Node.js timer internals in the browser
-    // It won't work in all environments, so we'll provide a fallback
-    try {
-        return require('timers').getTimerHandlers();
-    } catch (e) {
-        return {};
     }
 }
 
@@ -317,7 +295,7 @@ function stopRefreshCycle() {
         clearTimeout(refreshTimer);
         refreshTimer = null;
     }
-    
+
     // Clear the status update interval
     if (statusUpdateInterval) {
         clearInterval(statusUpdateInterval);
@@ -342,13 +320,13 @@ function scheduleNextRefresh() {
 
     // Calculate and store the next refresh time
     nextRefreshTime = Date.now() + settings.refreshInterval;
-    
+
     refreshTimer = setTimeout(() => {
         refreshCache();
     }, settings.refreshInterval);
 
     debugLog(`Next refresh scheduled in ${settings.refreshInterval / 1000} seconds`);
-    
+
     // Update the status indicator immediately
     updateStatusIndicator();
 }
@@ -371,15 +349,9 @@ async function refreshCache() {
 
         // Send the new message
         const data = await sendGenerationRequest('quiet', lastGenerationData);
-        debugLog('data:', data);
-        // data.ok doesn't exist
-        // if (data.ok) {
-        //     debugLog('Cache refreshed successfully');
-        //     showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
-        // } else {
-        //     const errorMessage = data?.error?.message || data?.response || 'Unknown error';
-        //     throw new Error(errorMessage);
-        // }
+        debugLog('', data);
+        // Show notification for successful refresh
+        showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
 
     } catch (error) {
         debugLog('Cache refresh failed', error);
