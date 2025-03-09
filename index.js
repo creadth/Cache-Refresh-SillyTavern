@@ -367,7 +367,13 @@ function captureGenerationData(data) {
     debugLog('captureGenerationData', mainApi);
     try {
         if (!isChatCompletion()) {
-            debugLog('Prompt Inspector: Not a chat completion prompt');
+            debugLog('Cache Refresher: Not a chat completion prompt');
+            return;
+        }
+
+        // Must absolutely skip dry run, because it's not Squash message, therefor not the right prompt
+        if (data.dryRun) {
+            debugLog('Cache Refresher: Dry run');
             return;
         }
 
