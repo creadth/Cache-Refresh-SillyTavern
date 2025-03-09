@@ -1,5 +1,5 @@
 import { extension_settings } from '../../../extensions.js';
-const { eventSource, eventTypes, callGenericPopup, renderExtensionTemplateAsync, sendGenerationRequest, main_api } = SillyTavern.getContext();
+const { eventSource, eventTypes, renderExtensionTemplateAsync, sendGenerationRequest, main_api } = SillyTavern.getContext();
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
@@ -262,65 +262,6 @@ async function bindSettingsHandlers() {
 }
 
 /**
- * Shows the settings popup (legacy method, kept for compatibility)
- */
-async function showSettings() {
-    // This function is kept for backward compatibility
-    // The settings are now primarily managed through the HTML panel
-
-    const html = `
-        <div id="cache_refresher_settings" style="display: flex; flex-direction: column; gap: 10px;">
-            <label for="refresh_interval" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${'Refresh Interval (minutes)'}</span>
-                <input type="number" id="refresh_interval" min="0.5" max="10" step="0.5" value="${settings.refreshInterval / (60 * 1000)}" style="width: 100px;">
-            </label>
-
-            <label for="max_refreshes" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${'Maximum Refreshes'}</span>
-                <input type="number" id="max_refreshes" min="1" max="20" value="${settings.maxRefreshes}" style="width: 100px;">
-            </label>
-
-            <label for="min_tokens" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${'Minimum Tokens'}</span>
-                <input type="number" id="min_tokens" min="1" max="10" value="${settings.minTokens}" style="width: 100px;">
-            </label>
-
-            <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${'Show Notifications'}</span>
-                <input type="checkbox" id="show_notifications" ${settings.showNotifications ? 'checked' : ''}>
-            </label>
-
-            <label style="display: flex; justify-content: space-between; align-items: center;">
-                <span>${'Debug Mode'}</span>
-                <input type="checkbox" id="debug_mode" ${settings.debug ? 'checked' : ''}>
-            </label>
-        </div>
-    `;
-
-    const result = await callGenericPopup(html, 2, 'Cache Refresher Settings');
-
-    if (result) {
-        settings.refreshInterval = parseFloat(document.getElementById('refresh_interval').value) * 60 * 1000;
-        settings.maxRefreshes = parseInt(document.getElementById('max_refreshes').value);
-        settings.minTokens = parseInt(document.getElementById('min_tokens').value);
-        settings.showNotifications = document.getElementById('show_notifications').checked;
-        settings.debug = document.getElementById('debug_mode').checked;
-
-        await saveSettings();
-        showNotification('Settings updated');
-
-        // Restart refresh cycle if enabled and we have data
-        if (settings.enabled && lastGenerationData) {
-            stopRefreshCycle();
-            startRefreshCycle();
-        }
-
-        // Update the HTML panel
-        updateSettingsPanel();
-    }
-}
-
-/**
  * Adds the extension buttons to the UI
  */
 async function addExtensionControls() {
@@ -375,6 +316,19 @@ async function addExtensionControls() {
  * Starts the refresh cycle
  */
 function startRefreshCycle() {
+    debugLog('startRefreshCycle:', lastGenerationData);
+    if (!lastGenerationData) return;
+    debugLog('startRefreshCycle: pass');
+    if (lastGenerationData.dryRun) {
+        debugLog('startRefreshCycle: Skipping dry run prompt');
+        return;
+    }
+
+    if (!isChatCompletion()) {
+        debugLog('startRefreshCycle: Not a chat completion prompt');
+        return;
+    }
+
     stopRefreshCycle(); // Clear any existing cycle
 
     refreshesLeft = settings.maxRefreshes;
@@ -461,7 +415,7 @@ async function refreshCache() {
  */
 function captureGenerationData(data) {
     if (!settings.enabled) return;
-    debugLog('captureGenerationData');
+    debugLog('captureGenerationData', lastGenerationData);
     try {
         if (data.dryRun) {
             debugLog('Prompt Inspector: Skipping dry run prompt');
@@ -473,22 +427,10 @@ function captureGenerationData(data) {
             return;
         }
 
-        if (!prompt) {
-            debugLog('No prompt found in generation data');
-            return;
-        }
-
-        lastGenerationData = {
-            prompt: prompt,
-            api: main_api, // Store the API used
-        };
+        lastGenerationData = data;
 
         debugLog('Captured generation data', lastGenerationData);
 
-        // Start the refresh cycle
-        if (lastGenerationData) {
-            startRefreshCycle();
-        }
     } catch (error) {
         debugLog('Error capturing generation data', error);
     }
@@ -547,9 +489,14 @@ jQuery(async ($) => {
         // Bind event handlers
         bindSettingsHandlers();
 
-        // Listen for completed generations
+        // Listen to catch generations and store it
         eventSource.on(eventTypes.APP_READY, () => {
-            eventSource.on(eventTypes.GENERATION_ENDED, captureGenerationData);
+            eventSource.on(eventTypes.CHAT_COMPLETION_PROMPT_READY, captureGenerationData);
+        });
+
+        // Listen for generation starting to start the cycle (Don't know if timer start at start or end of response, so this just to be sure.)
+        eventSource.on(eventTypes.APP_READY, () => {
+            eventSource.on(eventTypes.GENERATE_AFTER_DATA, startRefreshCycle);
         });
 
         debugLog('Cache Refresher extension initialized');
