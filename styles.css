@@ -1,7 +1,11 @@
 /* styles.css */
-/* styles.css */
+/**
+ * Cache Refresher Extension Styles
+ */
+
+/* Floating status indicator styles */
 #cache_refresher_status {
-    /* Styles for the status indicator */
+    /* Styles for the floating status indicator that shows refresh count and timer */
     position: fixed;
     bottom: 10px;
     right: 10px;
@@ -11,5 +15,17 @@
     border-radius: 5px;
     font-size: 12px;
     z-index: 1000;
-    display: none; /* Initially hidden */
+    display: none; /* Initially hidden until refreshes are active */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease;
+}
+
+/* Settings panel specific styles */
+.cache-refresher-setting-item {
+    margin-bottom: 8px;
+}
+
+/* Ensure proper spacing in the settings panel */
+.cache_refresher_settings .flex-container {
+    margin-bottom: 8px;
 }

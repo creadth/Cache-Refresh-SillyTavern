@@ -1,11 +1,18 @@
+<!-- 
+  Cache Refresher Settings Panel
+  This template is loaded into the SillyTavern extensions settings panel
+-->
 <div class="cache_refresher_settings">
     <div class="inline-drawer">
+        <!-- Header/Toggle for the settings panel -->
         <div class="inline-drawer-toggle inline-drawer-header">
             <b data-i18n="Cache Refresher">Cache Refresher</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
 
+        <!-- Settings panel content -->
         <div class="inline-drawer-content">
+            <!-- Main toggle switches -->
             <div class="flex-container">
                 <input type="checkbox" id="cache_refresher_enabled">
                 <span data-i18n="Enable Cache Refresher">Enable Cache Refresher</span>
@@ -18,6 +25,7 @@
 
             <hr>
 
+            <!-- Numeric settings -->
             <div class="flex-container flexFlowColumn" title="Maximum number of cache refreshes to perform">
                 <label for="cache_refresher_max_refreshes" data-i18n="Maximum Refreshes">
                     Maximum Refreshes
@@ -26,6 +34,7 @@
                     <input id="cache_refresher_max_refreshes" class="text_pole flex1 wide100p" type="number" min="1" max="20" value="3">
                 </div>
                 
+                <!-- Refresh interval setting -->
                 <div class="cache-refresher-setting-item">
                     <label for="cache_refresher_interval" title="Interval between cache refreshes in minutes">
                         <span>Refresh Interval (minutes)</span>
@@ -33,6 +42,7 @@
                     </label>
                 </div>
                 
+                <!-- Minimum tokens setting -->
                 <div class="cache-refresher-setting-item">
                     <label for="cache_refresher_min_tokens" title="Minimum tokens to request for cache refresh">
                         <span>Minimum Tokens</span>
@@ -42,6 +52,7 @@
             </div>
             <hr>
 
+            <!-- Status display -->
             <div class="flex-container flexFlowColumn">
                 <div class="flex-container">
                     <span>Status: </span>
