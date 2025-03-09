@@ -12,3 +12,7 @@
     z-index: 1000;
     display: none; /* Initially hidden */
 }
+
+.cache_refresher_status_indicator.visible {
+    display: block !important;
+}

@@ -96,6 +96,10 @@ function updateUI() {
 function updateStatusIndicator() {
     if (!statusIndicator) {
         statusIndicator = document.getElementById('cache_refresher_status');
+        if (!statusIndicator) {
+            debugLog('Status indicator element not found in the DOM');
+            return;
+        }
     }
 
     if (settings.enabled && refreshesLeft > 0) {
@@ -113,6 +117,9 @@ function updateStatusIndicator() {
 
         statusIndicator.textContent = `Cache refreshes: ${refreshesLeft} remaining (${timeString})`;
         statusIndicator.style.display = 'block';
+        
+        // Make sure the indicator is visible
+        statusIndicator.classList.add('visible');
 
         // Update the timer display every second
         if (!statusUpdateInterval) {
@@ -122,6 +129,7 @@ function updateStatusIndicator() {
         }
     } else {
         statusIndicator.style.display = 'none';
+        statusIndicator.classList.remove('visible');
 
         // Clear the update interval when not needed
         if (statusUpdateInterval) {
