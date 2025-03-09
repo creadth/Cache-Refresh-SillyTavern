@@ -66,6 +66,12 @@ function isChatCompletion() {
     return mainApi === 'openai';
 }
 
+/**
+ * Shows the settings panel
+ */
+function showSettings() {
+    $('#cache_refresher_settings').parent().parent().trigger('click');
+}
 
 
 /**
