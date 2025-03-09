@@ -12,7 +12,8 @@
  */
 
 import { extension_settings } from '../../../extensions.js';
-const { eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, generateRaw, generateQuietPrompt } = SillyTavern.getContext();
+const { eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest } = SillyTavern.getContext();
+import { TempResponseLength } from '../../../../script.js';
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
@@ -391,7 +392,7 @@ async function refreshCache() {
         const response = await generateQuietPrompt(
             lastGenerationData.prompt, // The prompt to send
             true,                      // Keep it in background mode
-            true,                      // Skip World Info and Author's Note for efficiency
+            true,                      // Skip World Info and Author's Note being added into the prompt
             null,                      // No image needed
             null,                      // Use default name
             settings.minTokens         // Use our minimal token setting
