@@ -12,7 +12,7 @@
  */
 
 import { extension_settings } from '../../../extensions.js';
-const { eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, generateRaw } = SillyTavern.getContext();
+const { eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, generateRaw, generateQuietPrompt } = SillyTavern.getContext();
 
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
@@ -386,12 +386,17 @@ async function refreshCache() {
             throw new Error(`Unsupported API for cache refresh: ${mainApi} in refreshCache()`);
         }
 
-        // Send a "quiet" request - this tells SillyTavern not to display the response
+        // Use generateQuietPrompt which is perfect for cache refreshing
         // We're just refreshing the cache, not generating visible content
-        const data = await generate('quiet', {
-            quiet_prompt: lastGenerationData.prompt
-        });
-        debugLog('Cache refresh response:', data);
+        const response = await generateQuietPrompt(
+            lastGenerationData.prompt, // The prompt to send
+            true,                      // Keep it in background mode
+            true,                      // Skip World Info and Author's Note for efficiency
+            null,                      // No image needed
+            null,                      // Use default name
+            settings.minTokens         // Use our minimal token setting
+        );
+        debugLog('Cache refresh response:', response);
 
         // Show notification for successful refresh
         showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
