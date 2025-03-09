@@ -12,7 +12,7 @@
  */
 
 import { extension_settings } from '../../../extensions.js';
-const { chatCompletionSettings, eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest } = SillyTavern.getContext();
+const { chatCompletionSettings, eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest, CHAT_CHANGED } = SillyTavern.getContext();
 
 // Stolen from script.js and modify to work.
 class TempResponseLength {
