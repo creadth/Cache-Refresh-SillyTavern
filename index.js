@@ -31,7 +31,9 @@ const settings = extension_settings[extensionName];
 console.log('Cache Refresher: Settings initialized', settings);
 
 // State variables
-let lastGenerationData = null;
+let lastGenerationData = {
+    prompt: null,
+};
 let refreshTimer = null;
 let refreshesLeft = 0;
 let refreshInProgress = false;
@@ -73,7 +75,7 @@ async function toggleCacheRefresher() {
     await saveSettings();
 
     if (settings.enabled) {
-        if (lastGenerationData) {
+        if (lastGenerationData.prompt) {
             startRefreshCycle();
         }
     } else {
@@ -201,7 +203,7 @@ async function bindSettingsHandlers() {
 
             if (settings.enabled) {
                 showNotification('Cache refreshing enabled');
-                if (lastGenerationData) {
+                if (lastGenerationData.prompt) {
                     startRefreshCycle();
                 }
             } else {
@@ -219,7 +221,7 @@ async function bindSettingsHandlers() {
             await saveSettings();
 
             // Restart refresh cycle if enabled and we have data
-            if (settings.enabled && lastGenerationData) {
+            if (settings.enabled && lastGenerationData.prompt) {
                 stopRefreshCycle();
                 startRefreshCycle();
             }
@@ -231,7 +233,7 @@ async function bindSettingsHandlers() {
             await saveSettings();
 
             // Restart refresh cycle if enabled and we have data
-            if (settings.enabled && lastGenerationData) {
+            if (settings.enabled && lastGenerationData.prompt) {
                 stopRefreshCycle();
                 startRefreshCycle();
             }
@@ -317,7 +319,7 @@ async function addExtensionControls() {
  */
 function startRefreshCycle() {
     debugLog('startRefreshCycle:', lastGenerationData);
-    if (!lastGenerationData) return;
+    if (!lastGenerationData.prompt) return;
     debugLog('startRefreshCycle: pass');
 
     if (!isChatCompletion()) {
@@ -356,7 +358,7 @@ function stopRefreshCycle() {
  * Schedules the next refresh
  */
 function scheduleNextRefresh() {
-    if (!settings.enabled || refreshesLeft <= 0 || !lastGenerationData) {
+    if (!settings.enabled || refreshesLeft <= 0 || !lastGenerationData.prompt) {
         stopRefreshCycle();
         return;
     }
@@ -372,7 +374,7 @@ function scheduleNextRefresh() {
  * Performs a cache refresh by sending the same message as before. (not optimal, could send only the cached part)
  */
 async function refreshCache() {
-    if (!lastGenerationData || refreshInProgress) return;
+    if (!lastGenerationData.prompt || refreshInProgress) return;
 
     refreshInProgress = true;
     updateUI();
@@ -385,15 +387,16 @@ async function refreshCache() {
         }
 
         // Send the new message
-        const data = await sendGenerationRequest('api', lastGenerationData);
-
-        if (data.ok) {
-            debugLog('Cache refreshed successfully');
-            showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
-        } else {
-            const errorMessage = data?.error?.message || data?.response || 'Unknown error';
-            throw new Error(errorMessage);
-        }
+        const data = await sendGenerationRequest('quiet', lastGenerationData);
+        debugLog('data:', data);
+        // data.ok doesn't exist
+        // if (data.ok) {
+        //     debugLog('Cache refreshed successfully');
+        //     showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
+        // } else {
+        //     const errorMessage = data?.error?.message || data?.response || 'Unknown error';
+        //     throw new Error(errorMessage);
+        // }
 
     } catch (error) {
         debugLog('Cache refresh failed', error);
@@ -419,8 +422,7 @@ function captureGenerationData(data) {
             return;
         }
 
-        lastGenerationData = data;
-
+        lastGenerationData.prompt = data.chat;
         debugLog('Captured generation data', lastGenerationData);
 
     } catch (error) {
