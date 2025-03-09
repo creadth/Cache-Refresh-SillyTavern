@@ -1,5 +1,6 @@
 /* styles.css */
-.cache_refresher_status_indicator {
+/* styles.css */
+#cache_refresher_status {
     /* Styles for the status indicator */
     position: fixed;
     bottom: 10px;
@@ -11,8 +12,4 @@
     font-size: 12px;
     z-index: 1000;
     display: none; /* Initially hidden */
-}
-
-.cache_refresher_status_indicator.visible {
-    display: block !important;
 }
