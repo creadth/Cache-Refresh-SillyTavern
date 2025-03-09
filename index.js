@@ -379,6 +379,8 @@ async function refreshCache() {
     refreshInProgress = true;
     updateUI();
 
+    let eventHook = () => { };
+    
     try {
         debugLog('Refreshing cache with data', lastGenerationData);
 
@@ -387,17 +389,15 @@ async function refreshCache() {
             throw new Error(`Unsupported API for cache refresh: ${mainApi} in refreshCache()`);
         }
 
-        // Use generateQuietPrompt which is perfect for cache refreshing
+        // Temporarily set max tokens to 1 to minimize token usage
+        TempResponseLength.save(mainApi, 1);
+        eventHook = TempResponseLength.setupEventHook(mainApi);
+        debugLog('Temporarily set response length to 1 token');
+        
+        // Send a "quiet" request - this tells SillyTavern not to display the response
         // We're just refreshing the cache, not generating visible content
-        const response = await generateQuietPrompt(
-            lastGenerationData.prompt, // The prompt to send
-            true,                      // Keep it in background mode
-            true,                      // Skip World Info and Author's Note being added into the prompt
-            null,                      // No image needed
-            null,                      // Use default name
-            settings.minTokens         // Use our minimal token setting
-        );
-        debugLog('Cache refresh response:', response);
+        const data = await sendGenerationRequest('quiet', lastGenerationData);
+        debugLog('Cache refresh response:', data);
 
         // Show notification for successful refresh
         showNotification(`Cache refreshed. ${refreshesLeft - 1} refreshes remaining.`, 'success');
@@ -406,6 +406,13 @@ async function refreshCache() {
         debugLog('Cache refresh failed', error);
         showNotification(`Cache refresh failed: ${error.message}`, 'error');
     } finally {
+        // Always restore the original max tokens value
+        if (TempResponseLength.isCustomized()) {
+            TempResponseLength.restore(mainApi);
+            TempResponseLength.removeEventHook(mainApi, eventHook);
+            debugLog('Restored original response length');
+        }
+        
         // Always clean up, even if there was an error
         refreshInProgress = false;
         refreshesLeft--;
