@@ -2,19 +2,13 @@
  * Cache Refresher Extension for SillyTavern
  *
  * This extension automatically keeps the language model's cache "warm" by sending
- * periodic minimal requests to prevent cache expiration. This helps reduce API costs
- * and latency during longer interactive sessions.
- *
- * The extension works by:
- * 1. Capturing prompts after successful generations
- * 2. Scheduling periodic "ping" requests with minimal token requests
- * 3. Providing configurable settings for refresh behavior
+ * periodic minimal requests to prevent cache expiration. This helps reduce API costs.
  */
 
 import { extension_settings } from '../../../extensions.js';
 const { chatCompletionSettings, eventSource, eventTypes, renderExtensionTemplateAsync, mainApi, sendGenerationRequest } = SillyTavern.getContext();
 
-// Stolen from script.js and modify to work.
+// Stolen from script.js and modify to work for the extension.
 class TempResponseLength {
     static #originalResponseLength = -1;
     static #lastApi = null;
@@ -104,7 +98,6 @@ class TempResponseLength {
     }
 }
 
-
 // Log extension loading attempt
 console.log('Cache Refresher: Loading extension...');
 
@@ -166,7 +159,6 @@ function showNotification(message, type = 'info') {
 
 /**
  * Check if the current API is using chat completion format
- * Currently only checks for OpenAI, but could be expanded to include other chat completion APIs
  * @returns {boolean} True if using a chat completion API
  */
 function isChatCompletion() {
@@ -374,6 +366,7 @@ async function addExtensionControls() {
 }
 
 /**
+ * !!!DEPRECATED!!!
  * Starts the refresh cycle
  * This should only be called internally and not directly from event handlers
  * It begins the process of periodically refreshing the cache
@@ -515,7 +508,7 @@ async function refreshCache() {
  * Captures generation data for future cache refreshing
  * This is called when a new message is generated to store the prompt for later refreshes
  *
- * @param {Object} data - The generation data from SillyTavern
+ * @param {Object} data - The generation data from SillyTavern; looks like this '{chat: Array(17), dryRun: true}'
  */
 function captureGenerationData(data) {
     // Don't capture if the extension is disabled
