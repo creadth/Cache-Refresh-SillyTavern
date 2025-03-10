@@ -113,6 +113,7 @@ const defaultSettings = {
     maxRefreshes: 3,                       // Maximum number of refresh requests to send before stopping
     minTokens: 1,                          // Minimum tokens to request for cache refresh (keeping it minimal to reduce costs)
     showNotifications: true,               // Whether to display toast notifications for each refresh
+    showStatusIndicator: true,             // Whether to display the floating status indicator
 };
 
 // Initialize extension settings
@@ -211,8 +212,8 @@ function updateStatusIndicator() {
         document.body.appendChild(statusIndicator);
     }
 
-    // Only show the indicator if the extension is active and has refreshes pending
-    if (settings.enabled && refreshesLeft > 0) {
+    // Only show the indicator if the extension is active, has refreshes pending, and the indicator is enabled
+    if (settings.enabled && refreshesLeft > 0 && settings.showStatusIndicator) {
         let timeString = 'calculating...';
 
         if (nextRefreshTime) {
@@ -255,6 +256,7 @@ async function updateSettingsPanel() {
         // Update checkbox states to match current settings
         $('#cache_refresher_enabled').prop('checked', settings.enabled);
         $('#cache_refresher_show_notifications').prop('checked', settings.showNotifications);
+        $('#cache_refresher_show_status_indicator').prop('checked', settings.showStatusIndicator);
 
         // Update number inputs with current values
         // Convert milliseconds to minutes for the interval display
@@ -348,6 +350,13 @@ async function bindSettingsHandlers() {
         $('#cache_refresher_show_notifications').off('change').on('change', async function() {
             settings.showNotifications = $(this).prop('checked');
             await saveSettings();
+        });
+        
+        // Show status indicator toggle - controls whether to show the floating status indicator
+        $('#cache_refresher_show_status_indicator').off('change').on('change', async function() {
+            settings.showStatusIndicator = $(this).prop('checked');
+            await saveSettings();
+            updateUI(); // Update UI immediately to show/hide the indicator
         });
 
         debugLog('Settings handlers bound successfully');
