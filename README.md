@@ -10,6 +10,15 @@ AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and ot
 
 However, these caches typically have a short lifespan (often just a few minutes). If you pause your interaction with the model longer than the cache timeout, the cache expires, and your next request incurs the full cost. Additionally, enabling caching itself may have costs for some models (Claude charges 1.25x the original input price for caching).
 
+Price comparaison with Sonnet (middle of a conversation): 
+-  no caching [(4091 prompt, 0.012273$) + (414 completion, 0.00621$) = 0.0185$, 100% price]
+-  caching at depth 2 + system prompt caching [(4091 prompt, 0.00379$)  -> (414 completion, 0.00621$) = 0.01$, 54% price]
+-  cache refresh of the above cash [(4091 prompt, 0.00254$) -> (2 completion, 0.00003$) = 0.00254$, 14% price] (prompt price is lower because of the caching charge of 1.25)
+
+not caching will make you pay 1.85 times more on 4000 tokens (which only get worst as the number of token increases).
+Refreshing the cache cost only 0.14 time than restarting the prompt without cache (not counting the caching charge).
+Therefor if you had already had cached your prompt prior, it would have been rentable to refresh at least 3 times in this cases. (noCaching - Caching) / Refresh = (0.02 - 0.011) / 0.003 = 3 refresh
+
 ## The Solution: Cache Refreshing
 
 This extension solves this problem by:
@@ -72,8 +81,7 @@ Once enabled, the extension works automatically in the background. If you've ena
 *   **Cache Still Expiring:**
     *   Verify the extension is enabled.
     *   Ensure the refresh interval is *shorter* than your API/model's cache lifetime.
-    *   Use SillyTavern's API panel to compare the extension's refresh prompts with the original prompts.
-    *   Be aware that some APIs have very short or unpredictable cache lifetimes.
+    *   Use SillyTavern's API panel to compare the extension's refreshed prompts with the original prompts.
     *   Check the browser's developer console (F12) for any error messages.
 
 ## Contributing
