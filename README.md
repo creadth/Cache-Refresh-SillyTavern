@@ -2,13 +2,13 @@
 
 [![Status](https://img.shields.io/badge/status-beta-yellow.svg)]()
 
-This extension for [SillyTavern](https://github.com/SillyTavern/SillyTavern) automatically keeps your language model's cache "warm" by sending periodic, minimal requests. This was made for Claude models, but it works with other APIs as well. By preventing cache expiration, you can significantly reduce API costs and latency, especially during longer interactive sessions.
+This extension for [SillyTavern](https://github.com/SillyTavern/SillyTavern) automatically keeps your language model's cache "warm" by sending periodic, minimal requests. This was made for Claude Sonnet especially, but it works with other models as well. By preventing cache expiration, you can significantly reduce API cost.
 
 ## The Problem: Cache Expiration
 
-AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and others use caching to improve performance and reduce costs. When you send a prompt that's similar to a recent one, the service can often return a cached response instead of recomputing everything.
+AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and others use caching to improve performance and reduce costs. When you send a prompt that's similar to a recent one, or asking caching on your prompts, the service can often return a cached response instead of recomputing everything, which in turn will give a cache discount. (90% reduction of the price of the cached input for Claude)
 
-However, these caches have a short lifespan (often just a few minutes). If you pause your interaction with the model for longer than the cache timeout, the cache expires, and the next request incurs the full processing cost and latency.
+However, these caches have a short lifespan (often just a few minutes). If you pause your interaction with the model for longer than the cache timeout, the cache expires, and the next request incurs the full cost. This is without mentioning that caching can cost you for some model. (Charged 1.25x the price of the original input pricing for Claude)
 
 ## The Solution: Cache Refreshing
 
@@ -24,19 +24,19 @@ This extension solves this problem by:
 
 ## Benefits
 
-*   **Reduced API Costs:** Avoid paying full price for repeated or similar prompts.
+*   **Reduced API Costs:** Avoid paying full price if your too slow.
 *   **Automated:** Works in the background; no manual intervention is needed.
-*   **OpenRouter/Claude Optimized:** While it works with other APIs, it's particularly beneficial for OpenRouter's Claude models, which have short cache lifetimes.
+*   **OpenRouter/Claude Optimized:** While it works with other model, it's particularly beneficial for OpenRouter's Claude Sonnet, which has a short cache lifetime.
 
 ## Installation
 
 1.  **Prerequisites:** You must have SillyTavern installed and running.
 2.  **Install the Extension:** In SillyTavern, go to the Extensions menu (the puzzle piece icon). You should see a button labeled "Install extension". Click it and enter https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern
-3.  **Enable the Extension:** Also in the Extensions menu, you should see a new panel with all the options of the extension.
+3.  **Enable the Extension:** Also in the Extensions menu, you should see a new panel call Cache Refresher with all the options of the extension.
 
 ## Usage
 
-Once enabled, the extension works automatically in the background. You'll see a status indicator in the bottom right corner showing the number of remaining refreshes and a countdown timer. If you've enabled notifications, you'll also see a toast message each time the cache is refreshed.
+Once enabled, the extension works automatically in the background. If you've enabled the status indicator, you'll see in the bottom right corner the number of remaining refreshes and a countdown timer. If you've enabled notifications, you'll also see a toast message each time the cache is refreshed.
 
 ## Technical Details
 
@@ -61,12 +61,16 @@ Once enabled, the extension works automatically in the background. You'll see a 
 
 *   **Extension Not Appearing:** Make sure you've installed the extension correctly and restarted SillyTavern.
 *   **No Notifications:** Check that "Show Notifications" is enabled in the extension's settings.
+
+*   **No Cache Reduction:**
+    *   Make sure the model you're using as cache reduction. 
+    *   For Claude, make sure that you have activated cache in the config.yaml the options are `enableSystemPromptCache` and `cachingAtDepth`. For a better experience with caching, I would suggest to only active `cachingAtDepth` and put in on an even number. The number correspond to the caching depth, 0 is the message you just send, which is probably {{user}} (don't do this), 2 is the two previous message, which is also probably {{user}} (good enough most of the time). If you activate `enableSystemPromptCache` make sure that your prompt does not have any random element. 
 *   **Cache Still Expiring:**
     *   Ensure the extension is enabled.
     *   Check the refresh interval. It should be *shorter* than the cache lifetime of your chosen API/model.
-    *   Verify that your API key and settings are configured correctly in SillyTavern.
+    *   Check SillyTavern API to see the prompt send by the extension and compare it to the original prompt send.
     *   Some APIs might have very short or unpredictable cache lifetimes.
-*   **Errors in Console:** Check the browser's developer console (usually opened with F12) for error messages.
+    *   Check the browser's developer console (usually opened with F12) for error messages.
 
 ## Contributing
 
