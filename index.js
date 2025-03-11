@@ -550,6 +550,8 @@ function captureGenerationData(data) {
         // Store the chat prompt for future refreshes
         lastGenerationData.prompt = data.chat;
         debugLog('Captured generation data', lastGenerationData);
+        //Stop refresh cycle on new prompt (work better than GENERATION_STOPPED event)
+        stopRefreshCycle();
 
     } catch (error) {
         debugLog('Error capturing generation data', error);
