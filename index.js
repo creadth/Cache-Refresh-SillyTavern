@@ -580,7 +580,7 @@ function loadCSS() {
 // Initialize the extension when jQuery is ready
 jQuery(async ($) => {
     try {
-        debugLog('Cache Refresher: Starting initialization');
+        debugLog('Starting initialization');
 
         // Append the settings HTML to the extensions settings panel
         // This loads the HTML template from cache-refresher.html
@@ -634,7 +634,7 @@ jQuery(async ($) => {
             debugLog('Extension disabled at startup - ensuring clean state');
         }
 
-        debugLog('Cache Refresher extension initialized');
+        debugLog('Extension initialized');
         console.log(`[${extensionName}] Extension initialized successfully`);
     } catch (error) {
         console.error(`[${extensionName}] Error initializing extension:`, error);
