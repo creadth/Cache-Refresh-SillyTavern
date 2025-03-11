@@ -71,14 +71,15 @@ Once enabled, the extension works automatically in the background. If you've ena
 ## Troubleshooting
 
 *   **Extension Not Appearing:** Ensure you've installed the extension correctly and restarted SillyTavern.
-*   **No Notifications:** Verify that "Show Notifications" is enabled in the extension's settings.
+*   **No Notifications:** Check that "Show Notifications" is enabled in the extension settings. If notifications are still not appearing, you may need to modify the HTML template yourself to ensure proper display.
 
 *   **No Cache Reduction:**
     *   Confirm that the model you're using supports cache reduction.
     *   For Claude: Ensure you've activated caching in the config.yaml file. The relevant options are `enableSystemPromptCache` and `cachingAtDepth`. 
       * For optimal caching, it's recommended to only enable `cachingAtDepth` and set it to an even number.
-      * The number represents caching depth: 0 is your most recent message (typically {{user}} - not recommended), 2 represents the two previous messages (usually sufficient).
+      * The number represents caching depth: 0 is your most recent message (not recommended), 2 represents the two previous messages before (usually sufficient).
       * If you enable `enableSystemPromptCache`, ensure your system prompt doesn't contain any random elements.
+      * For more details on Claude caching, see: https://rentry.org/pay-the-piper-less
 *   **Cache Still Expiring:**
     *   Verify the extension is enabled.
     *   Ensure the refresh interval is *shorter* than your API/model's cache lifetime.
