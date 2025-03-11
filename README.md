@@ -1,6 +1,6 @@
 # SillyTavern Cache Refresher Extension
 
-[![Status](https://img.shields.io/badge/status-beta-yellow.svg)]()
+[![Status](https://img.shields.io/badge/status-ready-green.svg)]()
 
 This extension for [SillyTavern](https://github.com/SillyTavern/SillyTavern) automatically keeps your language model's cache "warm" by sending periodic, minimal requests. While designed primarily for Claude Sonnet, it works with other models as well. By preventing cache expiration, you can significantly reduce API costs.
 
@@ -28,7 +28,7 @@ This extension solves this problem by:
 3.  **Configurable Settings:** You can customize:
     *   **Refresh Interval:** How often to send refresh requests (default: 4 minutes 30 seconds, optimized for typical cache lifetimes).
     *   **Maximum Refreshes:** The maximum number of refresh requests to send before stopping (default: 3).
-    *   **Minimum Tokens:** The number of tokens to request in each refresh (default: 1).
+    *   **Maximum Tokens:** The number of tokens to request in each refresh (default: 1).
     *   **Show Notifications:** Toggle visibility of toast notifications for each refresh.
     *   **Show Status Indicator:** Toggle the floating status indicator that displays refresh countdown.
 
@@ -41,7 +41,7 @@ This extension solves this problem by:
 ## Installation
 
 1.  **Prerequisites:** You must have SillyTavern installed and running.
-2.  **Install the Extension:** In SillyTavern, go to the Extensions menu (the puzzle piece icon). Click the "Install extension" button and enter: https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern
+2.  **Install the Extension:** In SillyTavern, go to the Extensions menu (the puzzle piece icon). Click the "Install extension" button (top right) and enter: https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern
 3.  **Enable the Extension:** In the Extensions menu, you'll find a new "Cache Refresher" panel containing all the extension's options.
 
 ## Usage
@@ -61,11 +61,12 @@ Once enabled, the extension works automatically in the background. If you've ena
 
 ## How It Works
 
-1.  When you send a message and receive a response, the extension captures the prompt data.
-2.  It then schedules a series of refresh requests (up to the maximum number configured), if a prompt has been captured.
-3.  Each refresh request sends a minimal request to the API to keep the cache alive.
-4.  A floating status indicator shows the number of remaining refreshes and a countdown timer.
-5.  When the maximum number of refreshes is reached, or no prompt is available, the cycle stops until you send another message and a response is received.
+*   When you send a message and receive a response, the extension captures the prompt data.
+*   It then schedules a series of refresh requests (up to the maximum number configured).
+*   If a new message is sent, the refresh timer will stop and then restart after the new response is received.
+*   Each refresh request sends a minimal request to the API to keep the cache alive.
+*   A floating status indicator shows the number of remaining refreshes and a countdown timer.
+*   When the maximum number of refreshes is reached, the cycle stops until you send another message and a response is received.
 
 ## Troubleshooting
 
