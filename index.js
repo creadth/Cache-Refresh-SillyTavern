@@ -111,7 +111,7 @@ const defaultSettings = {
     enabled: false,
     refreshInterval: (5 * 60 - 30) * 1000, // 4 minutes 30 seconds in milliseconds (optimized for typical cache lifetimes)
     maxRefreshes: 3,                       // Maximum number of refresh requests to send before stopping
-    minTokens: 1,                          // Minimum tokens to request for cache refresh (keeping it minimal to reduce costs)
+    maxTokens: 1,                          // Maximum tokens to request for cache refresh (keeping it minimal to reduce costs)
     showNotifications: true,               // Whether to display toast notifications for each refresh
     showStatusIndicator: true,             // Whether to display the floating status indicator
 };
@@ -262,7 +262,7 @@ async function updateSettingsPanel() {
         // Convert milliseconds to minutes for the interval display
         $('#cache_refresher_max_refreshes').val(settings.maxRefreshes);
         $('#cache_refresher_interval').val(settings.refreshInterval / (60 * 1000));
-        $('#cache_refresher_min_tokens').val(settings.minTokens);
+        $('#cache_refresher_min_tokens').val(settings.maxTokens);
 
         // Update the status text to show current state
         const statusText = $('#cache_refresher_status_text');
@@ -342,7 +342,7 @@ async function bindSettingsHandlers() {
 
         // Min tokens input - controls how many tokens to request in each refresh
         $('#cache_refresher_min_tokens').off('change input').on('change input', async function() {
-            settings.minTokens = parseInt($(this).val()) || defaultSettings.minTokens;
+            settings.maxTokens = parseInt($(this).val()) || defaultSettings.maxTokens;
             await saveSettings();
         });
 
