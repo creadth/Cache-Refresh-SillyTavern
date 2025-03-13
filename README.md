@@ -10,63 +10,38 @@ AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and ot
 
 However, these caches typically have a short lifespan (often just a few minutes). If you pause your interaction with the model longer than the cache timeout, the cache expires, and your next request incurs the full cost. Additionally, enabling caching itself may have costs for some models (Claude charges 1.25x the original input price for caching).
 
-Price comparison with Claude Sonnet (middle of a conversation): 
--  No caching: [(4091 prompt tokens, $0.012273) + (414 completion tokens, $0.00621)] = $0.0185 (100% price)
--  With caching at depth 2 + system prompt caching: [(4091 prompt tokens, $0.00379) + (414 completion tokens, $0.00621)] = $0.01 (54% price)
--  Cache refresh: [(4091 prompt tokens, $0.00254) + (2 completion tokens, $0.00003)] = $0.00257 (14% price) (prompt price is lower because of the 1.25x caching charge)
-
-Without caching, you'll pay 1.85 times more for a 4000-token conversation (and this difference increases with longer conversations).
-Refreshing the cache costs only 14% compared to restarting the conversation without cache.
-Therefore, if you've already cached your prompt, it's cost-effective to refresh up to 3 times: (No caching - With caching) / Refresh cost = ($0.0185 - $0.01) / $0.00257 ≈ 3 refreshes
-
 ## The Solution: Cache Refreshing
 
-This extension solves this problem by:
+*   When you send a message and receive a response, the extension captures the prompt data.
+*   It then schedules a series of refresh requests (up to the maximum number configured).
+*   If a new message is sent, the refresh timer will stop and then restart after the new response is received.
+*   Each refresh request sends a minimal request to the API to just to keep the cache alive.
+*   A floating status indicator shows the number of remaining refreshes and a countdown timer, and a notification appear after each succesful refresh.
+*   If you change or leave the conversation, the timer will stop.
 
-1.  **Capturing Prompts:** After each successful generation, the extension captures the prompt sent to the AI model.
-2.  **Scheduling Refreshes:** It then schedules periodic "ping" requests to the API. These requests are designed to be minimal (requesting only a single token) to keep the cache alive while minimizing costs.
-3.  **Configurable Settings:** You can customize:
-    *   **Refresh Interval:** How often to send refresh requests (default: 4 minutes 30 seconds, optimized for typical cache lifetimes).
-    *   **Maximum Refreshes:** The maximum number of refresh requests to send before stopping (default: 3).
-    *   **Maximum Tokens:** The number of tokens to request in each refresh (default: 1).
-    *   **Show Notifications:** Toggle visibility of toast notifications for each refresh.
-    *   **Show Status Indicator:** Toggle the floating status indicator that displays refresh countdown.
+### OpenRouter Logs Analysis
 
-## Benefits
+#### Price Comparison with Claude Sonnet 3.7 (4000 tokens, 12 messages)
 
-*   **Reduced API Costs:** Avoid paying full price when your typing or response time exceeds the cache timeout.
-*   **Automated:** Works silently in the background without requiring manual intervention.
-*   **OpenRouter/Claude Optimized:** While compatible with various models, it's particularly beneficial for OpenRouter's Claude Sonnet, which has a short cache lifetime.
+| Caching Method | Prompt Tokens | Completion Tokens | Total Cost | % of Base Price |
+|----------------|---------------|-------------------|------------|-----------------|
+| No caching | 4091 ($0.012273) | 414 ($0.00621) | $0.0185 | 100% |
+| Depth 2 + System | 4091 ($0.00379) | 414 ($0.00621) | $0.01 | 54% |
+| Cache refresh | 4091 ($0.00254) | 2 ($0.00003) | $0.00257 | 14% |
+
+#### Price Comparison with Claude Sonnet 3.7 (14000 tokens, 76 messages)
+
+| Caching Method | Prompt Tokens | Completion Tokens | Total Cost | % of Base Price |
+|----------------|---------------|-------------------|------------|-----------------|
+| No caching | 14412 ($0.04323) | 298 ($0.00447) | $0.0477 | 100% |
+| Depth 2 + System | 14412 ($0.00653) | 298 ($0.00447) | $0.011 | 23% |
+| Cache refresh | 14412 ($0.00541) | 2 ($0.00003) | $0.00544 | 11% |
 
 ## Installation
 
 1.  **Prerequisites:** You must have SillyTavern installed and running.
 2.  **Install the Extension:** In SillyTavern, go to the Extensions menu (the puzzle piece icon). Click the "Install extension" button (top right) and enter: https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern
 3.  **Enable the Extension:** In the Extensions menu, you'll find a new "Cache Refresher" panel containing all the extension's options.
-
-## Usage
-
-Once enabled, the extension works automatically in the background. If you've enabled the status indicator, you'll see a display in the bottom right corner showing the number of remaining refreshes and a countdown timer. With notifications enabled, you'll also receive toast messages each time the cache is refreshed.
-
-## Technical Details
-
-*   **Dependencies:** This extension relies on SillyTavern's core functionality, including its event system, API request handling, and settings management. It also uses jQuery (which is included with SillyTavern) and standard browser APIs.
-*   **Event-Driven:** The extension listens for SillyTavern events to capture prompts and trigger refresh cycles.
-    *   Listens for `CHAT_COMPLETION_PROMPT_READY` events to capture prompts.
-    *   Listens for `MESSAGE_RECEIVED` to start the refresh cycle.
-    *   Listens for `CHAT_CHANGED` events to stop the refresh cycle and clear data when the user switches chats.
-*   **API Requests:** The extension uses SillyTavern's built-in `sendGenerationRequest` function to send the refresh requests. This ensures that the correct API endpoint, authentication, and settings are used.
-*   **Settings:** Settings are stored using SillyTavern's `extension_settings` object, making them persistent across sessions.
-*   **UI Integration:** The extension adds a settings panel to SillyTavern's extensions menu and a floating status indicator.
-
-## How It Works
-
-*   When you send a message and receive a response, the extension captures the prompt data.
-*   It then schedules a series of refresh requests (up to the maximum number configured).
-*   If a new message is sent, the refresh timer will stop and then restart after the new response is received.
-*   Each refresh request sends a minimal request to the API to keep the cache alive.
-*   A floating status indicator shows the number of remaining refreshes and a countdown timer.
-*   When the maximum number of refreshes is reached, the cycle stops until you send another message and a response is received.
 
 ## Troubleshooting
 
@@ -85,10 +60,6 @@ Once enabled, the extension works automatically in the background. If you've ena
     *   Ensure the refresh interval is *shorter* than your API/model's cache lifetime.
     *   Use SillyTavern's API panel to compare the extension's refreshed prompts with the original prompts.
     *   Check the browser's developer console (F12) for any error messages.
-
-## Contributing
-
-Contributions are welcome! If you find a bug or have a feature request, please open an issue on this GitHub repository. If you'd like to contribute code, please fork the repository and submit a pull request.
 
 ## License
 
