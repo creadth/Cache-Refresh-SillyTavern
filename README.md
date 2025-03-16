@@ -1,4 +1,4 @@
-# SillyTavern Cache Refresher Extension
+# SillyTavern Automatic Cache Refreshing Extension
 
 [![Status](https://img.shields.io/badge/status-ready-green.svg)]()
 
@@ -10,7 +10,7 @@ AI language models (LLMs) like Claude (through OpenRouter), OpenAI's GPT, and ot
 
 However, these caches typically have a short lifespan (often just a few minutes). If you pause your interaction with the model longer than the cache timeout, the cache expires, and your next request incurs the full cost. Additionally, enabling caching itself may have costs for some models (Claude charges 1.25x the original input price for caching).
 
-## The Solution: Cache Refreshing
+## The Solution: Automatic Cache Refreshing
 
 *   When you send a message and receive a response, the extension captures the prompt data.
 *   It then schedules a series of refresh requests (up to the maximum number configured).
