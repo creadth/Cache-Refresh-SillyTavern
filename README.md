@@ -63,7 +63,7 @@ Could have refresh 6 times (35 minutes between messages) and it would have cost 
       * When using `enableSystemPromptCache` (Claude endpoints only, always on for OpenRouter), avoid random elements or lorebooks in your system prompt.
       * Learn more about Claude caching at: https://rentry.org/pay-the-piper-less
       * Be aware that `openai_max_context` in your `Chat Completion` settings can provoke unexpected behavior.
-      * If (`openai_max_tokens` + total prompt tokens) exceeds `openai_max_context`, your conversation history will be truncated from the beginning to ensure that `openai_max_tokens` is never exceeded at the end of your completion.
+      * If (`openai_max_tokens` + `total_tokens`) exceeds `openai_max_context`, your conversation history will be truncated from the beginning of your history to ensure that `openai_max_context` is never exceeded at the end of your completion.
 *   **Cache Still Expiring:**
     *   Confirm the extension is enabled and running.
     *   Set refresh intervals shorter than your model's cache timeout period.
