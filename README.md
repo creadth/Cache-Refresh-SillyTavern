@@ -72,4 +72,4 @@ Could have refresh 6 times (35 minutes between messages) and it would have cost 
 
 ## License
 
-This extension is released under the [MIT License](LICENSE).
+This extension is released under the [GNU AGP License](LICENSE).
