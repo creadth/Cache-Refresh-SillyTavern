@@ -25,7 +25,7 @@ class TempResponseLength {
     static save(api, responseLength) {
         if (api === 'openai') {
             this.#originalResponseLength = chatCompletionSettings.openai_max_tokens;
-            chatCompletionSettings.openai_max_tokens = responseLength;
+            //chatCompletionSettings.openai_max_tokens = responseLength;
         } else {
             throw new Error(`Unsupported API in class TempResponseLength: save(api, responseLength)`);
         }
@@ -580,7 +580,7 @@ function loadCSS() {
 // Initialize the extension when jQuery is ready
 jQuery(async ($) => {
     try {
-        debugLog('Starting initialization');
+        debugLog('MODIFIED EXTENSION. Loading...');
 
         // Append the settings HTML to the extensions settings panel
         // This loads the HTML template from cache-refresher.html
