@@ -102,7 +102,7 @@ class TempResponseLength {
 console.log('Cache Refresher: Loading extension...');
 
 // Extension name and path
-const extensionName = 'Cache-Refresh-SillyTavern-Modified';
+const extensionName = 'Cache-Refresh-SillyTavern';
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const path = `third-party/${extensionName}`;
 
