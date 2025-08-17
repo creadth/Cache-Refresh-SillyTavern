@@ -1,12 +1,12 @@
 {
-    "display_name": "Cache Refresh",
+    "display_name": "Cache Refresh (Modified)",
     "loading_order": 1,
     "requires": [],
     "optional": [],
     "js": "index.js",
     "css": "styles.css",
-    "author": "OneinfinityN7",
+    "author": "OneinfinityN7 (creadth fork)",
     "version": "1.0.0",
-    "homePage": "https://github.com/OneinfinityN7/Cache-Refresh-SillyTavern",
+    "homePage": "https://github.com/creadth/Cache-Refresh-SillyTavern",
     "auto_update": true
 }
